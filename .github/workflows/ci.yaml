@@ -28,24 +28,24 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    
+
     - name: Setup Go
       uses: actions/setup-go@v4
       with:
         go-version: 1.20.6
-    
+
     - name: Install Task
       uses: arduino/setup-task@v1
       with:
         version: 3.x
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - name: Install Go tools
       run: task setup
-    
+
     - name: Lint
       run: task lint
-    
+
     - name: Test
       run: task test:junit
       continue-on-error: true
@@ -100,10 +100,10 @@ jobs:
           git commit -m "Update code coverage badge"
           echo "changed=true" >> $GITHUB_ENV
         fi
-    
+
     - name: Push updated README
       if: |
-        (success() || failure()) && 
+        (success() || failure()) &&
         (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
         steps.update-readme.outputs.changed == 'true'
       uses: ad-m/github-push-action@master
@@ -120,6 +120,6 @@ jobs:
 
     - name: Benchmark
       run: task benchmark
-    
+
     - name: Security
       run: task security:gosec

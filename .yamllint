@@ -1,0 +1,34 @@
+extends: default
+
+rules:
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  trailing-spaces: enable
+  new-line-at-end-of-file: enable
+  line-length:
+    max: 120
+    level: warning
+  comments:
+    require-starting-space: true
+    ignore-shebangs: true
+    min-spaces-from-content: 2
+  comments-indentation: {}
+  truthy: enable
+  key-duplicates: enable
+  hyphens:
+    max-spaces-after: 1
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+  commas:
+    max-spaces-before: 0
+    min-spaces-after: 1
+    max-spaces-after: 1
+  document-start: disable
+  document-end: disable
+
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'

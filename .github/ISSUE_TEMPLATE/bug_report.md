@@ -33,6 +33,6 @@ assignees: christosgalano
 
 ## Your Environment
 <!--- Include as many relevant details about the environment you experienced the bug in -->
-* Version used:
-* Operating System and version:
-* Link to your project:
+- Version used:
+- Operating System and version:
+- Link to your project:

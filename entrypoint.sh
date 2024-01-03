@@ -65,7 +65,7 @@ elif [[ "$command" == "update" ]]; then
     echo "Silent: $silent"
 
     result=$(eval "/app/bicep-docs $command $path $include_preview $in_place $silent")
-else 
+else
     echo "Error: Command not found (scan/update)"
     exit 1
 fi
@@ -83,7 +83,7 @@ if [[ "$summary" == "--summary" ]]; then
   fi
   if [[ "$command" == "update" ]]; then
     echo "## Update results" >> "$GITHUB_STEP_SUMMARY"
-  else 
+  else
     echo "## Scan results" >> "$GITHUB_STEP_SUMMARY"
   fi
   echo "$result" >> "$GITHUB_STEP_SUMMARY"
