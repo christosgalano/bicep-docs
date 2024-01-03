@@ -1,0 +1,100 @@
+project_name: bicep-docs
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+
+builds:
+  - id: bicep-docs
+    binary: bicep-docs
+    main: ./cmd/bicep-docs
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+# gomod:
+#   # Proxy a module from proxy.golang.org, making the builds verifiable.
+#   # This will only be effective if running against a tag. Snapshots will ignore
+#   # this setting.
+#   proxy: true
+
+archives:
+  - id: bicep-docs
+    builds:
+      - bicep-docs
+    format: tar.gz
+    name_template: "{{.ProjectName}}_{{.Os}}_{{.Arch}}"
+    files:
+      - README.md
+      - LICENSE
+    format_overrides:
+      - goos: windows
+        format: zip
+
+release:
+  draft: true
+  mode: append
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+snapshot:
+  name_template: "{{ .Tag }}"
+
+sboms:
+  - artifacts: binary
+    documents:
+      - "{{ .Binary }}_{{ .Os }}_{{ .Arch }}.sbom.json"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "README.md"
+      - "LICENSE"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "^testdata:"
+      - ".*_test.go"
+
+nfpms:
+  - package_name: bicep-docs
+    homepage: https://github.com/christosgalano/bicep-docs
+    maintainer: Christos Galanopoulos <christosgalanop@gmail.com>
+    description: Command-line tool for scanning and updating the API version of Azure resources in Bicep files
+    license: Apache 2.0
+    formats:
+      - apk
+      - deb
+      - rpm
+    file_name_template: "{{.ProjectName}}_{{.Os}}_{{.Arch}}"
+
+brews:
+  - name: bicep-docs
+    description: Command-line tool for scanning and updating the API version of Azure resources in Bicep files
+    license: Apache 2.0
+    homepage: https://github.com/christosgalano/bicep-docs
+    folder: Formula
+    test: system "#{bin}/bicep-docs", "--help"
+    repository:
+      name: homebrew-christosgalano
+      owner: christosgalano
+    commit_author:
+      name: christosgalano
+      email: christosgalanop@gmail.com
+    install: bin.install "bicep-docs"

@@ -1,0 +1,42 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Fetch tags
+        run: git fetch --force --tags
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+      
+      - name: Install syft
+        run: go install github.com/anchore/syft/cmd/syft@latest
+      
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}

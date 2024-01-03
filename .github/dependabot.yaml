@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "23:00"
+      timezone: "Europe/Athens"
+    target-branch: "main"
+    open-pull-requests-limit: 3
+    pull-request-branch-name:
+      separator: "/"
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "23:00"
+      timezone: "Europe/Athens"
+    target-branch: "main"
+    open-pull-requests-limit: 3
+    pull-request-branch-name:
+      separator: "/"

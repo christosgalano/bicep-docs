@@ -1,0 +1,125 @@
+name: ci
+run-name: ${{ github.workflow }}
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+      checks: write
+      pull-requests: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.20.6
+    
+    - name: Install Task
+      uses: arduino/setup-task@v1
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Install Go tools
+      run: task setup
+    
+    - name: Lint
+      run: task lint
+    
+    - name: Test
+      run: task test:junit
+      continue-on-error: true
+
+    - name: Code coverage
+      run: task coverage:junit
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: success() || failure()
+      with:
+        check_name: Test Results
+        junit_files: test-results.xml
+        comment_mode: always
+        fail_on: test failures
+        action_fail: false
+        ignore_runs: false
+        job_summary: true
+        compare_to_earlier_commit: true
+        check_run_annotations: all tests, skipped tests
+
+    - name: Publish code coverage results
+      if: success() || failure()
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage.xml
+        badge: true
+        output: both
+        format: markdown
+        indicators: true
+        thresholds: "60 80"
+        fail_below_min: true
+        hide_complexity: true
+        hide_branch_rate: false
+
+    - name: Code coverage summary
+      if: success() || failure()
+      run: |
+        echo "## Code Coverage Results" >> $GITHUB_STEP_SUMMARY
+        cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    - name: Check if README changed
+      if: (success() || failure()) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      id: update-readme
+      run: |
+        task coverage:badge
+        git config --local user.name "github-actions[bot]"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git diff --quiet --exit-code -- README.md
+        if [ $? -ne 0 ]; then
+          git add README.md
+          git commit -m "Update code coverage badge"
+          echo "changed=true" >> $GITHUB_ENV
+        fi
+    
+    - name: Push updated README
+      if: |
+        (success() || failure()) && 
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+        steps.update-readme.outputs.changed == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        branch: ${{ github.ref }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add coverage PR comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      with:
+        path: code-coverage-results.md
+        recreate: true
+
+    - name: Benchmark
+      run: task benchmark
+    
+    - name: Security
+      run: task security:gosec
