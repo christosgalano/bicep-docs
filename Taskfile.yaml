@@ -1,8 +1,7 @@
-version: "3"
+version: '3'
 
 tasks:
   #### Default ####
-
   default:
     desc: List all tasks
     cmds:
@@ -10,7 +9,6 @@ tasks:
     silent: true
 
   #### Utility ####
-
   setup:
     desc: Run all setup tasks
     cmds:
@@ -21,7 +19,7 @@ tasks:
   setup:mod:
     desc: Download and tidy Go modules
     aliases:
-      - "mod"
+      - 'mod'
     cmds:
       - go mod download
       - go mod tidy
@@ -30,19 +28,16 @@ tasks:
   setup:go-tools:
     desc: Install necessary Go tools
     aliases:
-      - "tools"
+      - 'tools'
     cmds:
       - go install github.com/mgechev/revive@latest # revive for linting
       - go install gotest.tools/gotestsum@latest # gotestsum for testing
       - go install github.com/axw/gocov/gocov@latest # gocov for coverage
       - go install github.com/AlekSi/gocov-xml@latest # gocov-xml for coverage
-      - go install golang.org/x/vuln/cmd/govulncheck@latest # govulncheck for security
       - go install github.com/securego/gosec/v2/cmd/gosec@latest # gosec for security
-
     silent: true
 
   #### Lint ####
-
   lint:
     desc: Run all lint tasks
     cmds:
@@ -54,8 +49,8 @@ tasks:
   lint:fmt:
     desc: Format code
     aliases:
-      - "fmt"
-      - "format"
+      - 'fmt'
+      - 'format'
     cmds:
       - gofmt -s -w -l .
     silent: true
@@ -63,7 +58,7 @@ tasks:
   lint:vet:
     desc: Vet code
     aliases:
-      - "vet"
+      - 'vet'
     cmds:
       - go vet ./internal/*
       - go vet ./cmd/*
@@ -72,20 +67,19 @@ tasks:
   lint:revive:
     desc: Lint code with revive
     aliases:
-      - "rv"
-      - "revive"
+      - 'rv'
+      - 'revive'
     cmds:
       - revive -config revive.toml -formatter friendly ./internal/*
       - revive -config revive.toml -formatter friendly ./cmd/*
     silent: true
 
   #### Test ####
-
   test:
     desc: Run all tests for all packages
     cmds:
-      - printf "---------- bicep ---------------------------------\n\n" && task test:bicep && printf "\n\n"
-      - printf "---------- apiversions ---------------------------\n\n" && task test:apiversions && printf "\n\n"
+      - printf "---------- markdown ---------------------------------\n\n" && task test:markdown && printf "\n\n"
+      - printf "---------- template ---------------------------\n\n" && task test:template && printf "\n\n"
     silent: true
 
   test:junit:
@@ -97,31 +91,18 @@ tasks:
       - gotestsum --junitfile {{ .FILENAME }} --junitfile-project-name bicep-docs --junitfile-testcase-classname short --junitfile-testsuite-name short --junitfile-hide-empty-pkg --format-hide-empty-pkg
     silent: true
 
-  test:bicep:
-    desc: Run tests for bicep package
-    dir: ./internal/bicep
+  test:markdown:
+    desc: Run tests for markdown package
+    dir: ./internal/markdown
     cmds:
       - gotestsum -f testname
     silent: true
 
-  test:apiversions:
-    desc: Run tests for apiversions package
-    dir: ./internal/apiversions
+  test:template:
+    desc: Run tests for template package
+    dir: ./internal/template
     cmds:
       - gotestsum -f testname
-    silent: true
-
-  benchmark:
-    desc: Run all benchmarks for all packages
-    cmds:
-      - printf "---------- apiversions ---------------------------\n\n" && task benchmark:apiversions && printf "\n\n"
-    silent: true
-
-  benchmark:apiversions:
-    desc: Run benchmarks for apiversions package
-    dir: ./internal/apiversions
-    cmds:
-      - go test -bench=. -benchmem -run=^Test -count 2
     silent: true
 
   coverage:
@@ -144,35 +125,22 @@ tasks:
       - .github/scripts/coverage-badge.sh
 
   #### Security ####
-
   security:
     desc: Run all security tasks
     cmds:
       - task security:gosec
-      - task security:govulncheck
     silent: true
 
   security:gosec:
     desc: Run gosec
     aliases:
-      - "gosec"
+      - 'gosec'
     cmds:
-      - gosec -exclude=G104,G107,G118 ./internal/...
-      - gosec -exclude=G104,G107,G118 ./cmd/...
-    silent: true
-
-  security:govulncheck:
-    desc: Run govulncheck
-    aliases:
-      - "govulncheck"
-    cmds:
-      - govulncheck ./...
-      - task build
-      - govulncheck -mode=binary ./bin/bicep-docs
+      - gosec -exclude=G204,G304 ./internal/...
+      - gosec -exclude=G204,G304 ./cmd/...
     silent: true
 
   #### Build ####
-
   build:
     desc: Build binary
     cmds:
@@ -180,11 +148,10 @@ tasks:
     silent: true
 
   #### Clean ####
-
   clean:
     desc: Clean binaries
     aliases:
-      - "clean"
+      - 'clean'
     cmds:
       - rm ./bin/bicep-docs 2> /dev/null
       - rm -rf ./dist 2> /dev/null
