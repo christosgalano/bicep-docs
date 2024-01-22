@@ -22,7 +22,7 @@ This is a test template.
 | --- | --- | --- | --- |
 | test_parameter1 | string | This is a test parameter. | test |
 | test_parameter2 | object | This is a test parameter. | {} |
-| test_parameter3 | object | This is a test parameter. | {key1: value1, key2: value2} |
+| test_parameter3 | object | This is a test parameter. | {key1: value1} |
 
 ## Outputs
 

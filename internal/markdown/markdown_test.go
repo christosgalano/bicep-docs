@@ -51,7 +51,7 @@ func TestCreateFile(t *testing.T) {
 						},
 						"test_parameter3": {
 							Type:         "object",
-							DefaultValue: map[string]any{"key1": "value1", "key2": "value2"},
+							DefaultValue: map[string]any{"key1": "value1"},
 							Metadata: &types.Metadata{
 								Description: &parameterDescription,
 							},
