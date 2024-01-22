@@ -132,6 +132,14 @@ tasks:
     cmds:
       - .github/scripts/coverage-badge.sh
 
+  ### Benchmark###
+  benchmark:
+    desc: Run benchmarks for template package
+    dir: ./internal/template
+    cmds:
+      - go test -bench=. -benchmem -count 4
+    silent: true
+
   #### Security ####
   security:
     desc: Run all security tasks

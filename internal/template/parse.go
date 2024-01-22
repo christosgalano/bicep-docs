@@ -15,6 +15,16 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
+// Regular expressions to parse Bicep templates
+var (
+	moduleRegex                    = regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
+	resourceRegex                  = regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
+	outputRegex                    = regexp.MustCompile(`^output\s+(\S+)\s+`)
+	parameterRegex                 = regexp.MustCompile(`^param\s+(\S+)\s+`)
+	inlineDescriptionRegex         = regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
+	multilineDescriptionStartRegex = regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
+)
+
 // ParseTemplates parses a Bicep and its corresponding ARM template.
 // It returns a Template struct that contains the information about the Bicep template.
 func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
@@ -56,10 +66,6 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 	scanner := bufio.NewScanner(file)
 	modules := []types.Module{}
 	resources := []types.Resource{}
-
-	// Regex for Bicep entities
-	outputRegex := regexp.MustCompile(`^output\s+(\S+)\s+`)
-	parameterRegex := regexp.MustCompile(`^param\s+(\S+)\s+`)
 
 	var description *string
 	var line, currentDescription string
@@ -126,10 +132,6 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 
 // parseDescription extracts the description of a module or resource from a line.
 func parseDescription(line string, scanner *bufio.Scanner) *string {
-	// Regex for inline and multiline descriptions
-	inlineDescriptionRegex := regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
-	multilineDescriptionStartRegex := regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
-
 	// Parse inline description
 	matches := inlineDescriptionRegex.FindStringSubmatch(line)
 	if matches != nil {
@@ -166,7 +168,6 @@ func parseDescription(line string, scanner *bufio.Scanner) *string {
 
 // parseModule extracts information about a module from a line.
 func parseModule(line, description string) *types.Module {
-	moduleRegex := regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
 	matches := moduleRegex.FindStringSubmatch(line)
 	if matches != nil {
 		moduleSource := strings.ReplaceAll(matches[2], "'", "")
@@ -181,7 +182,6 @@ func parseModule(line, description string) *types.Module {
 
 // parseResource extracts information about a resource from a line.
 func parseResource(line, description string) *types.Resource {
-	resourceRegex := regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
 	matches := resourceRegex.FindStringSubmatch(line)
 	if matches != nil {
 		resourceType := strings.Split(matches[2], "@")[0]
