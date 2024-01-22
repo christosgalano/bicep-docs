@@ -101,10 +101,7 @@ jobs:
         fi
 
     - name: Push updated README
-      if: |
-        (success() || failure()) &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-        steps.update-readme.outputs.changed == 'true'
+      if: (success() || failure()) && steps.update-readme.outputs.changed == 'true'
       uses: ad-m/github-push-action@master
       with:
         branch: ${{ github.ref }}
