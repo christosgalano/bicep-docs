@@ -8,7 +8,7 @@ This is a test template.
 
 | Symbolic Name | Source | Description |
 | --- | --- | --- |
-| test_module | [./modules/test_module/main.bicep](./modules/test_module/main.bicep) | This is a test module. |
+| test_module | ./modules/test_module/main.bicep | This is a test module. |
 
 ## Resources
 
@@ -20,7 +20,9 @@ This is a test template.
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| test_parameter | string | This is a test parameter. |  |
+| test_parameter1 | string | This is a test parameter. | test |
+| test_parameter2 | object | This is a test parameter. | {} |
+| test_parameter3 | object | This is a test parameter. | {key1: value1, key2: value2} |
 
 ## Outputs
 

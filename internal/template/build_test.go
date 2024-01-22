@@ -35,8 +35,14 @@ func TestBuildBicepTemplate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid file extension",
+			args: args{
+				bicepFile: "./testdata/main.md",
+			},
+			wantErr: true,
+		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path, err := BuildBicepTemplate(tt.args.bicepFile)
@@ -88,13 +94,4 @@ func Test_commandExists(t *testing.T) {
 			}
 		})
 	}
-}
-
-// fileExists checks if a file exists.
-func fileExists(filePath string) bool {
-	f, err := os.Stat(filePath)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !f.IsDir()
 }

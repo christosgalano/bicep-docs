@@ -6,6 +6,7 @@ package markdown
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/christosgalano/bicep-docs/internal/types"
@@ -14,6 +15,11 @@ import (
 // CreateFile creates or overwrites a Markdown file
 // with the information from a Bicep template.
 func CreateFile(filename string, template *types.Template) error {
+	// Check if template is nil
+	if template == nil {
+		return fmt.Errorf("invalid template (nil)")
+	}
+
 	// Create file
 	file, err := os.Create(filename)
 	if err != nil {
@@ -90,8 +96,7 @@ func modulesToMarkdown(template *types.Template) string {
 		builder.WriteString("## Modules\n\n")
 		builder.WriteString(generateTableHeaders(moduleHeaders))
 		for _, module := range template.Modules {
-			sourceLink := fmt.Sprintf("[%s](%s)", module.Source, module.Source)
-			builder.WriteString(fmt.Sprintf("| %s | %s | %s |\n", module.SymbolicName, sourceLink, module.Description))
+			builder.WriteString(fmt.Sprintf("| %s | %s | %s |\n", module.SymbolicName, module.Source, module.Description))
 		}
 	}
 	return builder.String()
@@ -119,8 +124,17 @@ func parametersToMarkdown(template *types.Template) string {
 	if len(template.Parameters) > 0 {
 		builder.WriteString("## Parameters\n\n")
 		builder.WriteString(generateTableHeaders(parameterHeaders))
-		for name, param := range template.Parameters {
+
+		// Sort the parameter names
+		sortedParameters := make([]string, 0, len(template.Parameters))
+		for name := range template.Parameters {
+			sortedParameters = append(sortedParameters, name)
+		}
+		sort.Strings(sortedParameters)
+
+		for _, name := range sortedParameters {
 			defaultValue := ""
+			param := template.Parameters[name]
 			if param.DefaultValue != nil {
 				if dv, ok := param.DefaultValue.(map[string]any); ok {
 					if len(dv) == 0 {
@@ -137,6 +151,8 @@ func parametersToMarkdown(template *types.Template) string {
 							i++
 						}
 					}
+				} else {
+					defaultValue = fmt.Sprintf("%v", param.DefaultValue)
 				}
 			}
 			builder.WriteString(fmt.Sprintf("| %s | %s | %s | %s |\n", name, param.Type, extractDescription(param.Metadata), defaultValue))
@@ -152,7 +168,16 @@ func outputsToMarkdown(template *types.Template) string {
 	if len(template.Outputs) > 0 {
 		builder.WriteString("## Outputs\n\n")
 		builder.WriteString(generateTableHeaders(outputHeaders))
-		for name, output := range template.Outputs {
+
+		// Sort the output names
+		sortedOutputs := make([]string, 0, len(template.Outputs))
+		for name := range template.Outputs {
+			sortedOutputs = append(sortedOutputs, name)
+		}
+		sort.Strings(sortedOutputs)
+
+		for _, name := range sortedOutputs {
+			output := template.Outputs[name]
 			builder.WriteString(fmt.Sprintf("| %s | %s | %s |\n", name, output.Type, extractDescription(output.Metadata)))
 		}
 	}

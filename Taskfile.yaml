@@ -31,6 +31,7 @@ tasks:
       - 'tools'
     cmds:
       - go install github.com/mgechev/revive@latest # revive for linting
+      - go install golang.org/x/tools/cmd/deadcode@latest # deadcode
       - go install gotest.tools/gotestsum@latest # gotestsum for testing
       - go install github.com/axw/gocov/gocov@latest # gocov for coverage
       - go install github.com/AlekSi/gocov-xml@latest # gocov-xml for coverage
@@ -44,6 +45,7 @@ tasks:
       - task lint:fmt
       - task lint:vet
       - task lint:revive
+      - task lint:deadcode
     silent: true
 
   lint:fmt:
@@ -60,8 +62,7 @@ tasks:
     aliases:
       - 'vet'
     cmds:
-      - go vet ./internal/*
-      - go vet ./cmd/*
+      - go vet ./...
     silent: true
 
   lint:revive:
@@ -70,8 +71,15 @@ tasks:
       - 'rv'
       - 'revive'
     cmds:
-      - revive -config revive.toml -formatter friendly ./internal/*
-      - revive -config revive.toml -formatter friendly ./cmd/*
+      - revive -config revive.toml -formatter friendly ./...
+    silent: true
+
+  lint:deadcode:
+    desc: Lint code with deadcode
+    aliases:
+      - 'deadcode'
+    cmds:
+      - deadcode -test ./...
     silent: true
 
   #### Test ####

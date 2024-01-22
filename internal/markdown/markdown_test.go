@@ -35,9 +35,23 @@ func TestCreateFile(t *testing.T) {
 					Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
 					Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
 					Parameters: map[string]types.Parameter{
-						"test_parameter": {
+						"test_parameter1": {
 							Type:         "string",
 							DefaultValue: "test",
+							Metadata: &types.Metadata{
+								Description: &parameterDescription,
+							},
+						},
+						"test_parameter2": {
+							Type:         "object",
+							DefaultValue: map[string]any{},
+							Metadata: &types.Metadata{
+								Description: &parameterDescription,
+							},
+						},
+						"test_parameter3": {
+							Type:         "object",
+							DefaultValue: map[string]any{"key1": "value1", "key2": "value2"},
 							Metadata: &types.Metadata{
 								Description: &parameterDescription,
 							},
@@ -99,6 +113,22 @@ func TestCreateFile(t *testing.T) {
 			wantErr:   false,
 			checkFile: "./testdata/no_metadata.md",
 		},
+		{
+			name: "given path is a directory",
+			args: args{
+				filename: "testdata",
+				template: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil template",
+			args: args{
+				filename: "nil_template.md",
+				template: nil,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -114,6 +144,10 @@ func TestCreateFile(t *testing.T) {
 			filename := filepath.Join(tempDir, tt.args.filename)
 			if err := CreateFile(filename, tt.args.template); (err != nil) != tt.wantErr {
 				t.Errorf("CreateFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				return
 			}
 
 			// Compare the contents of the generated file with the expected file
@@ -140,7 +174,7 @@ func compareFiles(file1, file2 string) error {
 
 	// Compare the contents of the two files
 	if !bytes.Equal(bytes1, bytes2) {
-		return fmt.Errorf("contents of %s and %s are not the same", file1, file2)
+		return fmt.Errorf("contents of %s and %s are not the same:\n%s\n------\n%s", file1, file2, string(bytes1), string(bytes2))
 	}
 
 	return nil

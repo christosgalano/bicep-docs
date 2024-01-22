@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/christosgalano/bicep-docs/internal/types"
@@ -48,116 +49,59 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, error) {
 	file, err := os.Open(bicepFile)
 	if err != nil {
-		return nil, nil, err
+		return []types.Module{}, []types.Resource{}, err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-
 	modules := []types.Module{}
 	resources := []types.Resource{}
 
 	// Regex for Bicep entities
 	outputRegex := regexp.MustCompile(`^output\s+(\S+)\s+`)
 	parameterRegex := regexp.MustCompile(`^param\s+(\S+)\s+`)
-	moduleRegex := regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
-	resourceRegex := regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
 
-	// Regex for annotations
-	inlineDescriptionRegex := regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
-	multilineDescriptionStartRegex := regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
-	// multilineDescriptionEndRegex := regexp.MustCompile(`(.*?)'''\s*\)$`)
-
-	currentDescription := ""
-	insideMultilineComment := false
-	insideMultilineDescription := false
-	afterMultilineTicks := false
-
-	// For each line in the file
+	var description *string
+	var line, currentDescription string
 	for scanner.Scan() {
-		line := scanner.Text()
+		line = scanner.Text()
 
-		// Skip single line comments
-		if strings.HasPrefix(strings.TrimSpace(line), "//") {
+		// Skip empty line
+		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
-		// Skip multiline comments
-		if strings.HasPrefix(strings.TrimSpace(line), "/*") {
-			insideMultilineComment = true
-		}
-		if insideMultilineComment {
-			if strings.HasSuffix(strings.TrimSpace(line), "*/") {
-				insideMultilineComment = false
-			}
+		// Skip comment
+		if skipComment(line, scanner) {
 			continue
 		}
 
-		// Handle inline descriptions
-		matches := inlineDescriptionRegex.FindStringSubmatch(line)
-    	if matches != nil {
-			currentDescription = matches[3]
+		// Parse description
+		description = parseDescription(line, scanner)
+		if description != nil {
+			currentDescription = *description
 			continue
 		}
 
-		// Handle multiline descriptions
-		matches = multilineDescriptionStartRegex.FindStringSubmatch(line)
-		if matches != nil {
-			insideMultilineDescription = true
-			currentDescription = matches[2]
-			continue
-		}
-		if insideMultilineDescription {
-			// Consume lines until the multiline description ends '''[\n\r\s]*\).
-			// If the line contains the multiline description's end ticks ('''), add the text before them.
-			// If the line ends with a closing parenthesis, then the multiline description is over;
-			// otherwise, keep consuming lines until a closing parenthesis is found.
-			if strings.Contains(line, "'''") {
-				currentDescription += strings.Split(line, "'''")[0]
-				if !strings.HasSuffix(line, ")") {
-					afterMultilineTicks = true
-				} else {
-					insideMultilineDescription = false
-				}
-			} else if afterMultilineTicks && strings.HasSuffix(line, ")") {
-				afterMultilineTicks = false
-				insideMultilineDescription = false
-			} else {
-				currentDescription += strings.TrimSpace(line)
-			}
-			continue
-		}
-
-		// Handle parameters and outputs
+		// Disregard the description of parameters and outputs
 		matchesP, matchesO := parameterRegex.FindStringSubmatch(line), outputRegex.FindStringSubmatch(line)
 		if matchesP != nil || matchesO != nil {
 			currentDescription = ""
 			continue
 		}
 
-		// Handle modules
-		matches = moduleRegex.FindStringSubmatch(line)
-		if matches != nil {
-			moduleSource := strings.ReplaceAll(matches[2], "'", "")
-			modules = append(modules, types.Module{
-				SymbolicName: matches[1],
-				Source:       moduleSource,
-				Description:  currentDescription,
-			})
+		// Parse module
+		module := parseModule(line, currentDescription)
+		if module != nil {
+			modules = append(modules, *module)
 			currentDescription = ""
 			continue
 		}
 
-		// Handle resources
-		matches = resourceRegex.FindStringSubmatch(line)
-		if matches != nil {
-			resourceType := strings.Split(matches[2], "@")[0]
-			resourceType = strings.ReplaceAll(resourceType, "'", "")
-			resources = append(resources, types.Resource{
-				SymbolicName: matches[1],
-				Type:         resourceType,
-				Description:  currentDescription,
-			})
+		// Parse resource
+		resource := parseResource(line, currentDescription)
+		if resource != nil {
+			resources = append(resources, *resource)
 			currentDescription = ""
 			continue
 		}
@@ -167,5 +111,106 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 		return nil, nil, err
 	}
 
+	// Sort the resource symbolic names
+	sort.SliceStable(resources, func(i, j int) bool {
+		return resources[i].SymbolicName < resources[j].SymbolicName
+	})
+
+	// Sort the module symbolic names
+	sort.SliceStable(modules, func(i, j int) bool {
+		return modules[i].SymbolicName < modules[j].SymbolicName
+	})
+
 	return modules, resources, err
+}
+
+// parseDescription extracts the description of a module or resource from a line.
+func parseDescription(line string, scanner *bufio.Scanner) *string {
+	// Regex for inline and multiline descriptions
+	inlineDescriptionRegex := regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
+	multilineDescriptionStartRegex := regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
+
+	// Parse inline description
+	matches := inlineDescriptionRegex.FindStringSubmatch(line)
+	if matches != nil {
+		return &matches[3]
+	}
+
+	// Parse multiline description
+	matches = multilineDescriptionStartRegex.FindStringSubmatch(line)
+	if matches != nil {
+		description := matches[2]
+		afterMultilineTicks := false
+
+		// Consume lines until the multiline description ends => '''[\n\r\s]*\).
+		// If the line contains the multiline description's end ticks ('''), add the text before them.
+		// If the line ends with a closing parenthesis, then the multiline description is over;
+		// otherwise, keep consuming lines until a closing parenthesis is found.
+		for scanner.Scan() {
+			line = scanner.Text()
+			if strings.Contains(line, "'''") {
+				description += strings.Split(line, "'''")[0]
+				if strings.HasSuffix(line, ")") {
+					return &description
+				}
+				afterMultilineTicks = true
+			} else if afterMultilineTicks && strings.HasSuffix(line, ")") {
+				return &description
+			} else {
+				description += strings.TrimSpace(line)
+			}
+		}
+	}
+	return nil
+}
+
+// parseModule extracts information about a module from a line.
+func parseModule(line, description string) *types.Module {
+	moduleRegex := regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
+	matches := moduleRegex.FindStringSubmatch(line)
+	if matches != nil {
+		moduleSource := strings.ReplaceAll(matches[2], "'", "")
+		return &types.Module{
+			SymbolicName: matches[1],
+			Source:       moduleSource,
+			Description:  description,
+		}
+	}
+	return nil
+}
+
+// parseResource extracts information about a resource from a line.
+func parseResource(line, description string) *types.Resource {
+	resourceRegex := regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
+	matches := resourceRegex.FindStringSubmatch(line)
+	if matches != nil {
+		resourceType := strings.Split(matches[2], "@")[0]
+		resourceType = strings.ReplaceAll(resourceType, "'", "")
+		return &types.Resource{
+			SymbolicName: matches[1],
+			Type:         resourceType,
+			Description:  description,
+		}
+	}
+	return nil
+}
+
+// skipComment skips single line and multiline comments.
+// It returns true if a comment was skipped, false otherwise.
+func skipComment(line string, scanner *bufio.Scanner) bool {
+	// Skip single line comments
+	if strings.HasPrefix(strings.TrimSpace(line), "//") {
+		return true
+	}
+	// Skip multiline comments
+	if strings.HasPrefix(strings.TrimSpace(line), "/*") {
+		for scanner.Scan() {
+			line = scanner.Text()
+			if strings.HasSuffix(strings.TrimSpace(line), "*/") {
+				break
+			}
+		}
+		return true
+	}
+	return false
 }

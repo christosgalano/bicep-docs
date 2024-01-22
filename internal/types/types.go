@@ -14,9 +14,9 @@ type Metadata struct {
 // Module is a struct that contains the information about a module.
 // A module has a symbolic name, a source, and an optional description.
 type Module struct {
-	SymbolicName   string
-	Source         string
-	Description    string
+	SymbolicName string
+	Source       string
+	Description  string
 }
 
 // Resource is a struct that contains the information about a resource.
@@ -24,7 +24,7 @@ type Module struct {
 type Resource struct {
 	SymbolicName string
 	Type         string
-	Description    string
+	Description  string
 }
 
 // Parameter is a struct that contains the information about a parameter.

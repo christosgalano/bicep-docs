@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.24.24.22086",
+      "templateHash": "1803293263260778812"
+    },
+    "name": "test",
+    "description": "This is a test template."
+  },
+  "parameters": {
+    "test_parameter": {
+      "type": "string",
+      "defaultValue": "test",
+      "metadata": {
+        "description": "This is a test parameter."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a test resource."
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "test",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.24.24.22086",
+              "templateHash": "10876430759223197141"
+            }
+          },
+          "resources": []
+        }
+      },
+      "metadata": {
+        "description": "This is a test module.\n"
+      }
+    }
+  ],
+  "outputs": {
+    "test_output": {
+      "type": "string",
+      "metadata": {
+        "description": "This is a test output."
+      },
+      "value": "test"
+    }
+  }
+}
