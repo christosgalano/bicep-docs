@@ -91,21 +91,20 @@ jobs:
       id: update-readme
       run: |
         task coverage:badge
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        if ! git diff --quiet --exit-code -- README.md; then
+          git add README.md
+          git commit -m "Update code coverage badge"
+          echo "changed=true" >> $GITHUB_ENV
+        fi
 
-      # git config --local user.name "github-actions[bot]"
-      # git config --local user.email "github-actions[bot]@users.noreply.github.com"
-      # git diff --quiet --exit-code -- README.md
-      # if [ $? -ne 0 ]; then
-        # git add README.md
-        # git commit -m "Update code coverage badge"
-        # echo "changed=true" >> $GITHUB_ENV
-      # fi
-    # - name: Push updated README
-    #   if: (success() || failure()) && steps.update-readme.outputs.changed == 'true'
-    #   uses: ad-m/github-push-action@master
-    #   with:
-    #     branch: ${{ github.ref }}
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push updated README
+      if: (success() || failure()) && steps.update-readme.outputs.changed == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        branch: ${{ github.ref }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add coverage PR comment
       uses: marocchino/sticky-pull-request-comment@v2
