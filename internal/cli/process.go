@@ -53,7 +53,7 @@ func processBicepFile(bicepFile, markdownFile string) error {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 
-	// Generate Markdown
+	// Generate Markdown file
 	if err := markdown.CreateFile(markdownFile, t); err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}

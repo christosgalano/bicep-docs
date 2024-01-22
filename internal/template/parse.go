@@ -57,14 +57,21 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 	modules := []types.Module{}
 	resources := []types.Resource{}
 
+	// Regex for Bicep entities
 	outputRegex := regexp.MustCompile(`^output\s+(\S+)\s+`)
 	parameterRegex := regexp.MustCompile(`^param\s+(\S+)\s+`)
 	moduleRegex := regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
 	resourceRegex := regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
-	annotationRegex := regexp.MustCompile(`^@(description|sys.description)\('(.*)'\)`)
+
+	// Regex for annotations
+	inlineDescriptionRegex := regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
+	multilineDescriptionStartRegex := regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
+	// multilineDescriptionEndRegex := regexp.MustCompile(`(.*?)'''\s*\)$`)
 
 	currentDescription := ""
 	insideMultilineComment := false
+	insideMultilineDescription := false
+	afterMultilineTicks := false
 
 	// For each line in the file
 	for scanner.Scan() {
@@ -86,21 +93,49 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 			continue
 		}
 
-		// Check if line is an annotation
-		matches := annotationRegex.FindStringSubmatch(line)
-		if matches != nil {
-			currentDescription = matches[2]
+		// Handle inline descriptions
+		matches := inlineDescriptionRegex.FindStringSubmatch(line)
+    	if matches != nil {
+			currentDescription = matches[3]
 			continue
 		}
 
-		// Check if line contains a parameter or output
+		// Handle multiline descriptions
+		matches = multilineDescriptionStartRegex.FindStringSubmatch(line)
+		if matches != nil {
+			insideMultilineDescription = true
+			currentDescription = matches[2]
+			continue
+		}
+		if insideMultilineDescription {
+			// Consume lines until the multiline description ends '''[\n\r\s]*\).
+			// If the line contains the multiline description's end ticks ('''), add the text before them.
+			// If the line ends with a closing parenthesis, then the multiline description is over;
+			// otherwise, keep consuming lines until a closing parenthesis is found.
+			if strings.Contains(line, "'''") {
+				currentDescription += strings.Split(line, "'''")[0]
+				if !strings.HasSuffix(line, ")") {
+					afterMultilineTicks = true
+				} else {
+					insideMultilineDescription = false
+				}
+			} else if afterMultilineTicks && strings.HasSuffix(line, ")") {
+				afterMultilineTicks = false
+				insideMultilineDescription = false
+			} else {
+				currentDescription += strings.TrimSpace(line)
+			}
+			continue
+		}
+
+		// Handle parameters and outputs
 		matchesP, matchesO := parameterRegex.FindStringSubmatch(line), outputRegex.FindStringSubmatch(line)
 		if matchesP != nil || matchesO != nil {
 			currentDescription = ""
 			continue
 		}
 
-		// Check if line contains a module
+		// Handle modules
 		matches = moduleRegex.FindStringSubmatch(line)
 		if matches != nil {
 			moduleSource := strings.ReplaceAll(matches[2], "'", "")
@@ -113,7 +148,7 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 			continue
 		}
 
-		// Check if line contains a resource
+		// Handle resources
 		matches = resourceRegex.FindStringSubmatch(line)
 		if matches != nil {
 			resourceType := strings.Split(matches[2], "@")[0]
