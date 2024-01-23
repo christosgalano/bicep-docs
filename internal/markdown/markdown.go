@@ -12,8 +12,7 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// CreateFile creates or overwrites a Markdown file
-// with the information from a Bicep template.
+// CreateFile creates or overwrites a Markdown file with the information from a Bicep template.
 func CreateFile(filename string, template *types.Template) error {
 	// Check if template is nil
 	if template == nil {
@@ -88,7 +87,7 @@ func templateMetadataToMarkdown(template *types.Template) string {
 	return builder.String()
 }
 
-// modulesToMarkdown converts the modules part of a template to Markdown.
+// modulesToMarkdown converts the modules a template to Markdown.
 func modulesToMarkdown(template *types.Template) string {
 	var builder strings.Builder
 	moduleHeaders := []string{"Symbolic Name", "Source", "Description"}
@@ -102,7 +101,7 @@ func modulesToMarkdown(template *types.Template) string {
 	return builder.String()
 }
 
-// resourcesToMarkdown converts the resources part of a template to Markdown.
+// resourcesToMarkdown converts the resources a template to Markdown.
 func resourcesToMarkdown(template *types.Template) string {
 	var builder strings.Builder
 	resourceHeaders := []string{"Symbolic Name", "Type", "Description"}
@@ -117,7 +116,7 @@ func resourcesToMarkdown(template *types.Template) string {
 	return builder.String()
 }
 
-// parametersToMarkdown converts the parameters part of a template to Markdown.
+// parametersToMarkdown converts the parameters a template to Markdown.
 func parametersToMarkdown(template *types.Template) string {
 	var builder strings.Builder
 	parameterHeaders := []string{"Name", "Type", "Description", "Default"}
@@ -161,7 +160,7 @@ func parametersToMarkdown(template *types.Template) string {
 	return builder.String()
 }
 
-// outputsToMarkdown converts the outputs part of a template to Markdown.
+// outputsToMarkdown converts the outputs a template to Markdown.
 func outputsToMarkdown(template *types.Template) string {
 	var builder strings.Builder
 	outputHeaders := []string{"Name", "Type", "Description"}
@@ -184,7 +183,7 @@ func outputsToMarkdown(template *types.Template) string {
 	return builder.String()
 }
 
-// extractDescription extracts the description from the metadata part of an entity.
+// extractDescription extracts the description from an entity's metadata.
 func extractDescription(metadata *types.Metadata) string {
 	description := ""
 	if metadata != nil && metadata.Description != nil {

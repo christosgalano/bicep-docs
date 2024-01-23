@@ -23,7 +23,31 @@ SOFTWARE.
 */
 
 /*
-bicep-docs is a command-line tool for #TODO: fill
+bicep-docs is a command-line tool that generates documentation for Bicep templates.
+
+Given an input Bicep file or directory, it parses the file(s) and generates a corresponding Markdown file with the extracted information.
+This can be used to automatically generate and update documentation for your Bicep modules and resources.
+
+If the input is a directory, it will recursively parse all main.bicep files in the directory and its subdirectories.
+The output will be a corresponding README.md file in the same directory as the main.bicep file.
+
+CAUTION: If the Markdown file already exists, it will be overwritten.
+
+Example usage:
+
+Parse a Bicep file and generate a Markdown file:
+
+	bicep-docs -i main.bicep -o readme.md
+
+Parse a Bicep file and generate a README.md file in the same directory:
+
+	bicep-docs -i main.bicep
+
+Parse a directory and generate a README.md file for each main.bicep file:
+
+	bicep-docs -i ./bicep
+
+For full usage details, run `bicep-docs --help`.
 */
 package main
 

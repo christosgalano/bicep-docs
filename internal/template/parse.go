@@ -15,7 +15,7 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// Regular expressions to parse Bicep templates
+// Regular expressions to parse Bicep templates.
 var (
 	moduleRegex                    = regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
 	resourceRegex                  = regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
@@ -32,16 +32,27 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	var template types.Template
 	template.FileName = bicepFile
 
-	// Parse Bicep modules
+	// Parse Bicep template
 	template.Modules, template.Resources, err = parseBicepTemplate(bicepFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Bicep modules: %w", err)
 	}
 
+	// Parse ARM template
+	err = parseArmTemplate(armFile, &template)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ARM template: %w", err)
+	}
+
+	return &template, nil
+}
+
+// parseArmTemplate decodes an ARM template into a Template struct,
+func parseArmTemplate(armFile string, template *types.Template) error {
 	// Open JSON file
 	file, err := os.Open(armFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
@@ -49,10 +60,10 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&template)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode ARM template: %w", err)
+		return fmt.Errorf("failed to decode ARM template: %w", err)
 	}
 
-	return &template, nil
+	return nil
 }
 
 // parseBicepTemplate extracts information about any existing modules or resources from a Bicep template.
@@ -78,7 +89,11 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 		}
 
 		// Skip comment
-		if skipComment(line, scanner) {
+		skipped, err := skipComment(line, scanner)
+		if err != nil {
+			return nil, nil, err
+		}
+		if skipped {
 			continue
 		}
 
@@ -97,16 +112,18 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 		}
 
 		// Parse module
-		module := parseModule(line, currentDescription)
+		module := parseModule(line)
 		if module != nil {
+			module.Description = currentDescription
 			modules = append(modules, *module)
 			currentDescription = ""
 			continue
 		}
 
 		// Parse resource
-		resource := parseResource(line, currentDescription)
+		resource := parseResource(line)
 		if resource != nil {
+			resource.Description = currentDescription
 			resources = append(resources, *resource)
 			currentDescription = ""
 			continue
@@ -167,21 +184,20 @@ func parseDescription(line string, scanner *bufio.Scanner) *string {
 }
 
 // parseModule extracts information about a module from a line.
-func parseModule(line, description string) *types.Module {
+func parseModule(line string) *types.Module {
 	matches := moduleRegex.FindStringSubmatch(line)
 	if matches != nil {
 		moduleSource := strings.ReplaceAll(matches[2], "'", "")
 		return &types.Module{
 			SymbolicName: matches[1],
 			Source:       moduleSource,
-			Description:  description,
 		}
 	}
 	return nil
 }
 
 // parseResource extracts information about a resource from a line.
-func parseResource(line, description string) *types.Resource {
+func parseResource(line string) *types.Resource {
 	matches := resourceRegex.FindStringSubmatch(line)
 	if matches != nil {
 		resourceType := strings.Split(matches[2], "@")[0]
@@ -189,7 +205,6 @@ func parseResource(line, description string) *types.Resource {
 		return &types.Resource{
 			SymbolicName: matches[1],
 			Type:         resourceType,
-			Description:  description,
 		}
 	}
 	return nil
@@ -197,11 +212,12 @@ func parseResource(line, description string) *types.Resource {
 
 // skipComment skips single line and multiline comments.
 // It returns true if a comment was skipped, false otherwise.
-func skipComment(line string, scanner *bufio.Scanner) bool {
+func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 	// Skip single line comments
 	if strings.HasPrefix(strings.TrimSpace(line), "//") {
-		return true
+		return true, nil
 	}
+
 	// Skip multiline comments
 	if strings.HasPrefix(strings.TrimSpace(line), "/*") {
 		for scanner.Scan() {
@@ -210,7 +226,14 @@ func skipComment(line string, scanner *bufio.Scanner) bool {
 				break
 			}
 		}
-		return true
+
+		// If we've reached here without breaking, the comment was not properly closed
+		if scanner.Err() != nil {
+			return false, fmt.Errorf("multiline comment was not closed")
+		}
+
+		return true, nil
 	}
-	return false
+
+	return false, nil
 }

@@ -249,7 +249,7 @@ func Test_parseModule(t *testing.T) {
 		want *types.Module
 	}{
 		{
-			name: "valid module",
+			name: "registry source",
 			args: args{
 				line:        "module test 'br:exampleregistry.azurecr.io/bicep/modules/storage:v1'",
 				description: "This is a module",
@@ -257,7 +257,17 @@ func Test_parseModule(t *testing.T) {
 			want: &types.Module{
 				SymbolicName: "test",
 				Source:       "br:exampleregistry.azurecr.io/bicep/modules/storage:v1",
-				Description:  "This is a module",
+			},
+		},
+		{
+			name: "local source",
+			args: args{
+				line:        "module test './modules/test_module/main.bicep'",
+				description: "This is a module",
+			},
+			want: &types.Module{
+				SymbolicName: "test",
+				Source:       "./modules/test_module/main.bicep",
 			},
 		},
 		{
@@ -271,7 +281,7 @@ func Test_parseModule(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseModule(tt.args.line, tt.args.description); !reflect.DeepEqual(got, tt.want) {
+			if got := parseModule(tt.args.line); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseModule() = %v, want %v", got, tt.want)
 			}
 		})
@@ -289,15 +299,13 @@ func Test_parseResource(t *testing.T) {
 		want *types.Resource
 	}{
 		{
-			name: "valid resource",
+			name: "storage account",
 			args: args{
-				line:        "resource test 'Microsoft.Storage/storageAccounts@2023-01-01'",
-				description: "This is a resource",
+				line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01'",
 			},
 			want: &types.Resource{
 				SymbolicName: "test",
 				Type:         "Microsoft.Storage/storageAccounts",
-				Description:  "This is a resource",
 			},
 		},
 		{
@@ -311,7 +319,7 @@ func Test_parseResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseResource(tt.args.line, tt.args.description); !reflect.DeepEqual(got, tt.want) {
+			if got := parseResource(tt.args.line); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseResource() = %v, want %v", got, tt.want)
 			}
 		})
@@ -355,7 +363,11 @@ func Test_skipComment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if skipComment(tt.args.line, tt.args.scanner) {
+			skipped, err := skipComment(tt.args.line, tt.args.scanner)
+			if err != nil {
+				t.Errorf("skipComment() error = %v", err)
+			}
+			if skipped {
 				if tt.args.scanner != nil && tt.args.scanner.Scan() {
 					t.Errorf("got %q, want %q", tt.args.scanner.Text(), tt.args.expected)
 				}

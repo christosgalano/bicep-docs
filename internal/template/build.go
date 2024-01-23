@@ -11,6 +11,9 @@ import (
 )
 
 // BuildBicepTemplate builds a Bicep template into an ARM template and stores it in the OS temp directory.
+//
+// The path to the newly created ARM template is returned.
+//
 // Bicep or Azure CLI must be installed (https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
 func BuildBicepTemplate(bicepFile string) (string, error) {
 	// Validate file extension
@@ -33,17 +36,17 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 	var cmd *exec.Cmd
 	if commandExists("bicep") {
 		cmd = exec.Command("bicep", "build", bicepFile, "--outfile", armFile)
-		if err := cmd.Run(); err != nil {
-			return "", fmt.Errorf("failed to run 'bicep build': %w", err)
-		}
 	} else if commandExists("az") {
 		cmd = exec.Command("az", "bicep", "build", "--file", bicepFile, "--outfile", armFile)
-		if err := cmd.Run(); err != nil {
-			return "", fmt.Errorf("failed to run 'az bicep build': %w", err)
-		}
 	} else {
 		return "", fmt.Errorf("neither 'bicep' nor 'az' commands were found")
 	}
+
+	// Run the command and handle any errors
+	if err := runCommand(cmd); err != nil {
+		return "", fmt.Errorf("failed to run command: %w", err)
+	}
+
 	return armFile, nil
 }
 
@@ -51,4 +54,16 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
+}
+
+// runCommand runs a command and returns an error if it fails.
+func runCommand(cmd *exec.Cmd) error {
+	err := cmd.Run()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return fmt.Errorf("%s: %s", err, exitError.Stderr)
+		}
+		return err
+	}
+	return nil
 }

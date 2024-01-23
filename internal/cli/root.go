@@ -4,13 +4,13 @@ Package cli provides a command-line interface (CLI) for the bicep-docs tool, uti
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
+// CLI flags.
 var (
 	input  string
 	output string
@@ -18,35 +18,24 @@ var (
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Use:   "bicep-docs",
-	Short: "bicep-docs is a command-line tool ...",
-	Long: `bicep-docs
+	Version: "v1.0.0",
+	Use:     "bicep-docs",
+	Short:   "bicep-docs is a command-line tool that generates documentation for Bicep templates.",
+	Long: `bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
-bicep-docs is a command-line tool for ...
+Given an input Bicep file or directory, it parses the file(s) and generates a corresponding Markdown file with the extracted information.
+This can be used to automatically generate and update documentation for your Bicep modules and resources.
 
-It can be used to ...`,
+If the input is a directory, it will recursively parse all main.bicep files in the directory and its subdirectories.
+The output will be a corresponding README.md file in the same directory as the main.bicep file.
+
+If the Markdown file already exists, it will be overwritten.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Invalid file
-		fs, err := os.Stat(input)
+		err := processInput(input)
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				fmt.Fprintf(os.Stderr, "Error: no such file or directory %q\n", input)
-			} else {
-				fmt.Fprintln(os.Stderr, err)
-			}
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
-		}
-
-		if fs.IsDir() {
-			if err = processDirectory(input); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-		} else {
-			if err = processBicepFile(input, output); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
 		}
 	},
 }
@@ -64,7 +53,7 @@ func init() {
 		"input",
 		"i",
 		".",
-		"input Bicep file or directory (default: current directory))",
+		"input Bicep file or directory",
 	)
 
 	// output - optional
@@ -73,9 +62,6 @@ func init() {
 		"output",
 		"o",
 		"README.md",
-		"output Markdown file (default: README.md); ignored if input is a directory, where output is always README.md",
+		"output Markdown file; ignored if input is a directory",
 	)
-
-	// version
-	rootCmd.Version = "v1.0.0"
 }

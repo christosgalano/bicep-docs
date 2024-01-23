@@ -1,4 +1,4 @@
-# Contributing to bicep-docs (Bicep Resource Update Helper)
+# Contributing to bicep-docs
 
 Thank you for considering contributing to bicep-docs! We welcome your input and appreciate your efforts to improve this resource. To ensure a smooth and collaborative experience, please review the guidelines below before making any contributions.
 

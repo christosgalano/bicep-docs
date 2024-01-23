@@ -41,7 +41,7 @@ Arguments = [3]
 
 ## Length
 [rule.line-length-limit]
-Arguments = [200]
+Arguments = [250]
 
 ## Error handling
 [rule.unhandled-error]
