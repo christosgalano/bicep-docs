@@ -91,10 +91,18 @@ jobs:
       id: update-readme
       run: |
         task coverage:badge
+        echo "task coverage:badge passed"
+
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+        echo "git config passed"
+
         git diff --quiet --exit-code -- README.md
+        echo "git diff passed"
+
         if [[ "$?" -ne 0 ]]; then
+          echo "if passed"
+
           git add README.md
           git commit -m "Update code coverage badge"
           echo "changed=true" >> $GITHUB_OUTPUT
