@@ -22,51 +22,23 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 		return fmt.Errorf("invalid template (nil)")
 	}
 
-	fileExists := true
-	f, err := os.Stat(filename)
-
-	// If the file doesn't exist, set fileExists to false
+	// Check if file exists and is not a directory
+	fileExists, err := checkFileExists(filename)
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to stat file %q: %w", filename, err)
-		}
-		fileExists = false
+		return err
 	}
 
-	// If the file exists and is a directory, return an error
-	if fileExists && f.IsDir() {
-		return fmt.Errorf("output %q is a directory", filename)
-	}
-
-	// If the file exists and it's not a directory, read its content
+	// Read file content if it exists
 	fileContent := ""
 	if fileExists {
-		bytes, err := os.ReadFile(filename)
+		fileContent, err = readFileContent(filename)
 		if err != nil {
-			return fmt.Errorf("failed to read file %q: %w", filename, err)
+			return err
 		}
-		fileContent = string(bytes)
 	}
 
 	// Build Markdown string
-	var builder strings.Builder
-	builder.WriteString(templateMetadataToMarkdown(template))
-	if len(template.Modules) > 0 {
-		builder.WriteString(modulesToMarkdown(template))
-		builder.WriteString("\n")
-	}
-	if len(template.Resources) > 0 {
-		builder.WriteString(resourcesToMarkdown(template))
-		builder.WriteString("\n")
-	}
-	if len(template.Parameters) > 0 {
-		builder.WriteString(parametersToMarkdown(template))
-		builder.WriteString("\n")
-	}
-	if len(template.Outputs) > 0 {
-		builder.WriteString(outputsToMarkdown(template))
-	}
-	markdownString := builder.String()
+	markdownString := buildMarkdownString(template)
 
 	// Check if file needs to be updated
 	if fileExists && fileContent == markdownString {
@@ -99,6 +71,52 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	}
 
 	return nil
+}
+
+// checkFileExists checks if a file exists and is not a directory.
+func checkFileExists(filename string) (bool, error) {
+	f, err := os.Stat(filename)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to stat file %q: %w", filename, err)
+	}
+	if f.IsDir() {
+		return false, fmt.Errorf("output %q is a directory", filename)
+	}
+	return true, nil
+}
+
+// readFileContent reads the content of a file.
+func readFileContent(filename string) (string, error) {
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file %q: %w", filename, err)
+	}
+	return string(bytes), nil
+}
+
+// buildMarkdownString builds the Markdown string from a Bicep template.
+func buildMarkdownString(template *types.Template) string {
+	var builder strings.Builder
+	builder.WriteString(templateMetadataToMarkdown(template))
+	if len(template.Modules) > 0 {
+		builder.WriteString(modulesToMarkdown(template))
+		builder.WriteString("\n")
+	}
+	if len(template.Resources) > 0 {
+		builder.WriteString(resourcesToMarkdown(template))
+		builder.WriteString("\n")
+	}
+	if len(template.Parameters) > 0 {
+		builder.WriteString(parametersToMarkdown(template))
+		builder.WriteString("\n")
+	}
+	if len(template.Outputs) > 0 {
+		builder.WriteString(outputsToMarkdown(template))
+	}
+	return builder.String()
 }
 
 // generateTableHeaders generates the Markdown table headers.
