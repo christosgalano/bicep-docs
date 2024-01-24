@@ -70,7 +70,7 @@ nfpms:
   - package_name: bicep-docs
     homepage: https://github.com/christosgalano/bicep-docs
     maintainer: Christos Galanopoulos <christosgalanop@gmail.com>
-    description: Command-line tool to generate documentation for Bicep modules
+    description: Command-line tool to generate documentation for Bicep templates
     license: MIT
     formats:
       - apk
@@ -80,7 +80,7 @@ nfpms:
 
 brews:
   - name: bicep-docs
-    description: Command-line tool to generate documentation for Bicep modules
+    description: Command-line tool to generate documentation for Bicep templates
     license: MIT
     homepage: https://github.com/christosgalano/bicep-docs
     folder: Formula
