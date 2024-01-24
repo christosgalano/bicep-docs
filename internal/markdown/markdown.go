@@ -25,17 +25,17 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	fileExists := true
 	f, err := os.Stat(filename)
 
-	// If the file exists and is a directory, return an error
-	if err == nil && f.IsDir() {
-		return fmt.Errorf("output %q is a directory", filename)
-	}
-
 	// If the file doesn't exist, set fileExists to false
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			fileExists = false
+			return fmt.Errorf("failed to stat file %q: %w", filename, err)
 		}
-		return fmt.Errorf("failed to stat file %q: %w", filename, err)
+		fileExists = false
+	}
+
+	// If the file exists and is a directory, return an error
+	if fileExists && f.IsDir() {
+		return fmt.Errorf("output %q is a directory", filename)
 	}
 
 	// If the file exists and it's not a directory, read its content

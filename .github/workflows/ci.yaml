@@ -46,11 +46,14 @@ jobs:
       run: task lint
 
     - name: Test
+      id: test
       run: task test:junit
       continue-on-error: true
 
     - name: Code coverage
+      id: coverage
       run: task coverage:junit
+      continue-on-error: true
 
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action@v2
@@ -80,15 +83,28 @@ jobs:
         hide_complexity: true
         hide_branch_rate: false
 
+    - name: Add coverage PR comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      with:
+        path: code-coverage-results.md
+        recreate: true
+
     - name: Code coverage summary
       if: success() || failure()
       run: |
         echo "## Code Coverage Results" >> $GITHUB_STEP_SUMMARY
         cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
+    - name: Fail if tests failed
+      if: steps.test.outcome == 'failure' || steps.coverage.outcome == 'failure'
+      run: |
+        echo "Tests failed ..."
+        exit 1
+
     - name: Check if README changed
-      if: (success() || failure()) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      id: update-readme
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      id: readme
       run: |
         task coverage:badge
         git config --local user.name 'github-actions[bot]'
@@ -101,18 +117,11 @@ jobs:
         fi
 
     - name: Push updated README
-      if: (success() || failure()) && steps.update-readme.outputs.changed == 'true'
+      if: steps.readme.outputs.changed == 'true'
       uses: ad-m/github-push-action@master
       with:
         branch: ${{ github.ref }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Add coverage PR comment
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: (success() || failure()) && github.event_name == 'pull_request'
-      with:
-        path: code-coverage-results.md
-        recreate: true
 
     - name: Benchmark
       run: task benchmark
