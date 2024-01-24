@@ -20,5 +20,5 @@ bicep
 2. Run the following command:
 
 ```bash
-bicep-docs --input ./ --verbose
+bicep-docs --input . --verbose
 ```
