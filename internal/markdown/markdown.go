@@ -41,7 +41,6 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	// Build Markdown string
 	var builder strings.Builder
 	builder.WriteString(templateMetadataToMarkdown(template))
-	builder.WriteString("\n")
 	if len(template.Modules) > 0 {
 		builder.WriteString(modulesToMarkdown(template))
 		builder.WriteString("\n")
@@ -102,9 +101,16 @@ func templateMetadataToMarkdown(template *types.Template) string {
 	}
 	builder.WriteString(fmt.Sprintf("# %s\n", *title))
 
+	// Add description if it exists
 	if template.Metadata != nil && template.Metadata.Description != nil && *template.Metadata.Description != "" {
 		builder.WriteString(fmt.Sprintf("\n## Description\n\n%s\n", *template.Metadata.Description))
 	}
+
+	// Add a newline if there are any modules, resources, parameters or outputs
+	if len(template.Modules)+len(template.Resources)+len(template.Parameters)+len(template.Outputs) > 0 {
+		builder.WriteString("\n")
+	}
+
 	return builder.String()
 }
 
