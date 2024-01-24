@@ -158,6 +158,49 @@ func TestCreateFile(t *testing.T) {
 	}
 }
 
+func Test_checkFileExists(t *testing.T) {
+	type args struct {
+		filename string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "file exists",
+			args:    args{filename: "./testdata/full_template.md"},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "file does not exist",
+			args:    args{filename: "./testdata/does_not_exist.md"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "given path is a directory",
+			args:    args{filename: "./testdata"},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := checkFileExists(tt.args.filename)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("checkFileExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("checkFileExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // compareFiles compares the contents of two files.
 func compareFiles(file1, file2 string) error {
 	// Read the contents of the first file
