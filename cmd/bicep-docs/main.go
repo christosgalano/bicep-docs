@@ -31,7 +31,11 @@ This can be used to automatically generate and update documentation for your Bic
 If the input is a directory, it will recursively parse all main.bicep files in the directory and its subdirectories.
 The output will be a corresponding README.md file in the same directory as the main.bicep file.
 
-CAUTION: If the Markdown file already exists, it will be overwritten.
+If the input is a Bicep file, the output must be a file; otherwise an error will be returned.
+
+The default value for the output is `README.md`, relative to he directory where the command is executed.
+
+If the Markdown file already exists, it will be overwritten.
 
 Example usage:
 
@@ -46,6 +50,10 @@ Parse a Bicep file and generate a README.md file in the same directory:
 Parse a directory and generate a README.md file for each main.bicep file:
 
 	bicep-docs -i ./bicep
+
+Parse the current directory and generate a README.md file for each main.bicep file:
+
+	bicep-docs
 
 For full usage details, run `bicep-docs --help`.
 */

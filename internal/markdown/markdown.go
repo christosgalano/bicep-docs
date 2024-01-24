@@ -4,6 +4,7 @@ Package markdown provides functionality to create a Markdown file from a Bicep t
 package markdown
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -13,10 +14,21 @@ import (
 )
 
 // CreateFile creates or overwrites a Markdown file with the information from a Bicep template.
-func CreateFile(filename string, template *types.Template) error {
+//
+// If verbose is true, it prints a message to stdout.
+func CreateFile(filename string, template *types.Template, verbose bool) error {
 	// Check if template is nil
 	if template == nil {
 		return fmt.Errorf("invalid template (nil)")
+	}
+
+	// Check if file already exists
+	exists := true
+	_, err := os.Stat(filename)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			exists = false
+		}
 	}
 
 	// Create file
@@ -29,8 +41,8 @@ func CreateFile(filename string, template *types.Template) error {
 	// Build Markdown string
 	var builder strings.Builder
 	builder.WriteString(templateMetadataToMarkdown(template))
+	builder.WriteString("\n")
 	if len(template.Modules) > 0 {
-		builder.WriteString("\n")
 		builder.WriteString(modulesToMarkdown(template))
 		builder.WriteString("\n")
 	}
@@ -51,6 +63,15 @@ func CreateFile(filename string, template *types.Template) error {
 	_, err = file.WriteString(markdownString)
 	if err != nil {
 		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	// Print message to stdout
+	if verbose {
+		if exists {
+			fmt.Printf("Updated %s\n", filename)
+		} else {
+			fmt.Printf("Created %s\n", filename)
+		}
 	}
 
 	return nil

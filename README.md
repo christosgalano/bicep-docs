@@ -38,22 +38,26 @@ Download the latest binary from the [releases page](https://github.com/christosg
 
 ## Usage
 
-bicep-docs is a command-line tool that generates documentation from Bicep templates.
+bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
 Given an input Bicep template or directory, it parses the template(s) and generates a corresponding Markdown file with the extracted information.
 
-This can be used to automatically generate and update documentation for your Bicep templates.
+This can be used to automatically create and update documentation for your Bicep templates.
 
 If the input is a directory, then for each `main.bicep` it will generate a `README.md` in the same directory. This happens recursively for all subdirectories.
+
+If the input is a Bicep file, the output must be a file; otherwise, an error will be returned.
+
+The default value for the output is `README.md`, relative to the directory where the command is executed.
 
 **CAUTION:** If the Markdown file already exists, it will be **overwritten**.
 
 ### Example usage
 
-Parse a Bicep file and generate a Markdown file:
+Parse a Bicep file and generate a Markdown file with verbose output:
 
 ```bash
-bicep-docs -i main.bicep -o readme.md
+bicep-docs --input main.bicep --output readme.md --verbose
 ```
 
 Parse a Bicep file and generate a README.md file in the same directory:
@@ -105,9 +109,9 @@ bicep-docs can also be used as a GitHub Action to generate the documentation for
 ```yaml
   uses: christosgalano/bicep-docs@v1.0.0
   with:
-    input: ./bicep      # input file or directory (if directory, for each main.bicep file it will generate a README.md in the same directory recursively)
-    output: README.md   # output Markdown file (default: README.md); if input is a directory, this parameter is ignored
-
+    input: ./bicep          # input file or directory
+    output: README.md       # output Markdown file; if input is a directory, this parameter is ignored
+    verbose: true | false   # verbose output (default: false)
 ```
 
 ### Examples
@@ -120,6 +124,7 @@ Generate the documentation for a Bicep module by providing the input and output 
   with:
     input: ./bicep/main.bicep
     output: ./bicep/readme.md
+    verbose: true
 ```
 
 Generate the documentation for all Bicep modules in the current directory:

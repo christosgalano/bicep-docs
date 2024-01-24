@@ -16,7 +16,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 
 # Final image
-FROM alpine:3.18
+FROM alpine:3.19
 
 # Install bash
 RUN apk add --no-cache bash

@@ -1,21 +1,26 @@
 name: 'bicep-docs'
 author: 'Christos Galanopoulos'
-description: 'Generate documentation for Bicep modules'
+description: 'Generate documentation for Bicep templates'
 branding:
-  icon: refresh-cw
+  icon: file-text
   color: blue
 inputs:
   input:
-    description: 'Input file or directory'
+    description: 'Input Bicep file or directory'
     required: false
     default: '.'
   output:
     description: 'Output Markdown file; ignored if input is a directory'
     required: false
     default: 'README.md'
+  verbose:
+    description: 'Verbose output'
+    required: false
+    default: 'false'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - --input=${{ inputs.input }}
     - --output=${{ inputs.output }}
+    - --verbose=${{ inputs.verbose }}
