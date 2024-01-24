@@ -40,7 +40,7 @@ Download the latest binary from the [releases page](https://github.com/christosg
 
 bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
-Given an input Bicep template or directory, it parses the template(s) and generates a corresponding Markdown file with the extracted information.
+Given an input Bicep file or directory, it parses the file(s) and generates corresponding documentation in Markdown format.
 
 This can be used to automatically create and update documentation for your Bicep templates.
 

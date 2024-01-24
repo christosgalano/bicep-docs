@@ -25,14 +25,13 @@ SOFTWARE.
 /*
 bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
-Given an input Bicep file or directory, it parses the file(s) and generates a corresponding Markdown file with the extracted information.
-This can be used to automatically generate and update documentation for your Bicep modules and resources.
+Given an input Bicep file or directory, it parses the file(s) and generates corresponding documentation in Markdown format.
+This can be used to automatically create and update documentation for your Bicep templates.
 
-If the input is a directory, it will recursively parse all main.bicep files in the directory and its subdirectories.
+If the input is a directory, it will recursively parse all main.bicep files inside it.
 The output will be a corresponding README.md file in the same directory as the main.bicep file.
 
 If the input is a Bicep file, the output must be a file; otherwise an error will be returned.
-
 The default value for the output is `README.md`, relative to he directory where the command is executed.
 
 If the Markdown file already exists, it will be overwritten.

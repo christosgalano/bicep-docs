@@ -24,13 +24,12 @@ var rootCmd = &cobra.Command{
 	Short:   "bicep-docs is a command-line tool that generates documentation for Bicep templates.",
 	Long: `bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
-Given an input Bicep file or directory, it parses the file(s) and generates a corresponding Markdown file with the extracted information.
+Given an input Bicep file or directory, it parses the file(s) and generates corresponding documentation in Markdown format.
 
-If the input is a directory, it will recursively parse all main.bicep files in the directory and its subdirectories.
+If the input is a directory, it will recursively parse all main.bicep files inside it.
 The output will be a corresponding README.md file in the same directory as the main.bicep file.
 
 If the input is a Bicep file, the output must be a file; otherwise an error will be returned.
-
 The default value for the output is README.md, relative to the directory where the command is executed.
 
 If the Markdown file already exists, it will be overwritten.
@@ -73,7 +72,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(
 		&verbose,
 		"verbose",
-		"r",
+		"V",
 		false,
 		"verbose output",
 	)
