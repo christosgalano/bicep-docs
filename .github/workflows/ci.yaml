@@ -97,7 +97,7 @@ jobs:
         if [[ "$?" -ne 0 ]]; then
           git add README.md
           git commit -m "Update code coverage badge"
-          echo "changed=true" >> $GITHUB_ENV
+          echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Push updated README
