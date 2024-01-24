@@ -17,7 +17,7 @@ import (
 // generateDocs creates/updates Markdown documentation for the given input.
 func generateDocs(input, output string, verbose bool) error {
 	// Non-existing file or directory
-	f1, err := os.Stat(input)
+	f, err := os.Stat(input)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("no such file or directory %q: %w", input, err)
@@ -25,17 +25,7 @@ func generateDocs(input, output string, verbose bool) error {
 		return fmt.Errorf("failed to stat file %q: %w", input, err)
 	}
 
-	// output is a directory
-	f2, err := os.Stat(output)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to stat file %q: %w", output, err)
-		}
-	} else if f2.IsDir() {
-		return fmt.Errorf("output %q is not a file", output)
-	}
-
-	if f1.IsDir() {
+	if f.IsDir() {
 		return generateDocsFromDirectory(input, verbose)
 	}
 	return generateDocsFromBicepFile(input, output, verbose)
@@ -86,15 +76,6 @@ func generateDocsFromDirectory(dirPath string, verbose bool) error {
 //
 // If the Markdown file already exists, it will be overwritten.
 func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) error {
-	// If output is a directory, set the output file name to "README.md"
-	f, err := os.Stat(markdownFile)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("failed to stat file %q: %w", markdownFile, err)
-	}
-	if err == nil && f.IsDir() {
-		return fmt.Errorf("output %q is a directory", markdownFile)
-	}
-
 	// Build Bicep template into ARM template
 	armFile, err := template.BuildBicepTemplate(bicepFile)
 	if err != nil {
@@ -109,7 +90,7 @@ func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) err
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 
-	// Generate Markdown file
+	// Create/Update Markdown file
 	if err := markdown.CreateFile(markdownFile, t, verbose); err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}

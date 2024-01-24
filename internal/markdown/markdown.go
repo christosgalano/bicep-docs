@@ -22,21 +22,31 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 		return fmt.Errorf("invalid template (nil)")
 	}
 
-	// Check if file already exists
-	exists := true
-	_, err := os.Stat(filename)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			exists = false
-		}
+	fileExists := true
+	f, err := os.Stat(filename)
+
+	// If the file exists and is a directory, return an error
+	if err == nil && f.IsDir() {
+		return fmt.Errorf("output %q is a directory", filename)
 	}
 
-	// Create file
-	file, err := os.Create(filename)
+	// If the file doesn't exist, set fileExists to false
 	if err != nil {
-		return fmt.Errorf("failed to create file: %w", err)
+		if !errors.Is(err, os.ErrNotExist) {
+			fileExists = false
+		}
+		return fmt.Errorf("failed to stat file %q: %w", filename, err)
 	}
-	defer file.Close()
+
+	// If the file exists and it's not a directory, read its content
+	fileContent := ""
+	if fileExists {
+		bytes, err := os.ReadFile(filename)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", filename, err)
+		}
+		fileContent = string(bytes)
+	}
 
 	// Build Markdown string
 	var builder strings.Builder
@@ -58,7 +68,22 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	}
 	markdownString := builder.String()
 
-	// Write to file
+	// Check if file needs to be updated
+	if fileExists && fileContent == markdownString {
+		if verbose {
+			fmt.Printf("No changes to %s\n", filename)
+		}
+		return nil
+	}
+
+	// Create/Truncate file
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
+
+	// Write to file the Markdown string
 	_, err = file.WriteString(markdownString)
 	if err != nil {
 		return fmt.Errorf("failed to write to file: %w", err)
@@ -66,7 +91,7 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 
 	// Print message to stdout
 	if verbose {
-		if exists {
+		if fileExists {
 			fmt.Printf("Updated %s\n", filename)
 		} else {
 			fmt.Printf("Created %s\n", filename)
