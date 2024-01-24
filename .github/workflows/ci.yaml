@@ -103,7 +103,7 @@ jobs:
         exit 1
 
     - name: Check if README changed
-      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
       id: readme
       run: |
         task coverage:badge
