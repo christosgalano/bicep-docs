@@ -142,13 +142,10 @@ A complete example can be found below. It consists of the following steps:
 4. Push the changes - if needed
 
 ```yaml
-validate:
+bicep-docs:
   runs-on: ubuntu-latest
   permissions:
     contents: write
-  defaults:
-    run:
-      shell: bash
   steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -157,17 +154,18 @@ validate:
       uses: christosgalano/bicep-docs@v1.0.0
       with:
         input: ./bicep # path relative to workspace
+        verbose: true
 
-    # Everything works correctly, so we can commit and push the changes - if any.
-    - name: Commit changes
+    - name: Commit changes - if any
       id: check-changes
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add ./bicep
-        git commit -m "Updated documentation for Bicep modules"
-        if ! git diff --quiet --exit-code -- ./bicep; then
+        git diff --quiet --exit-code -- ./bicep || UPDATED=true
+        if [[ "$UPDATED" == "true" ]]; then
+          git add ./bicep
           echo "changed=true" >> $GITHUB_ENV
+          git commit -m "Updated documentation for Bicep modules"
         fi
 
     - name: Push changes - if needed
