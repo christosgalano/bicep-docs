@@ -16,13 +16,13 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 
 # Final image
-FROM python:3.11-slim-buster
+FROM alpine:3.19
 
 # Install utilities
-RUN apt-get update && apt-get install -y curl
+# RUN apt-get update && apt-get install -y curl
 
 # Install Azure CLI
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+# RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
