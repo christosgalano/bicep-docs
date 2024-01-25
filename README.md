@@ -10,7 +10,6 @@
 - [Description](#description)
 - [Installation](#installation)
 - [Usage](#usage)
-- [GitHub Action](#github-action)
 - [License](#license)
 
 ## Description
@@ -100,84 +99,6 @@ This tool is extremely useful if you are following this structure for your Bicep
 │   │   │   ├── main.bicepparam
 │   │   │   └── README.md
 │   │   └── ...
-```
-
-## GitHub Action
-
-bicep-docs can also be used as a GitHub Action to generate the documentation for Bicep modules in a repository.
-
-**NOTE:** It is a Container action, which is only supported on Linux runners.
-
-### Syntax
-
-```yaml
-  uses: christosgalano/bicep-docs@v1.0.0
-  with:
-    input: ./bicep          # input file or directory
-    output: README.md       # output Markdown file; if input is a directory, this parameter is ignored
-    verbose: true | false   # verbose output (default: false)
-```
-
-### Examples
-
-Generate the documentation for a Bicep module by providing the input and output parameters:
-
-```yaml
-- name: Generate documentation for main.bicep
-  uses: christosgalano/bicep-docs@v1.0.0
-  with:
-    input: ./bicep/main.bicep
-    output: ./bicep/readme.md
-    verbose: true
-```
-
-Generate the documentation for all Bicep modules in the current directory:
-
-```yaml
-- name: Generate documentation for Bicep modules
-  uses: christosgalano/bicep-docs@v1.0.0
-```
-
-A complete example can be found below. It consists of the following steps:
-
-1. Checkout the repository
-2. Generate the documentation for Bicep modules (a `README.md` for each `main.bicep` file)
-3. Commit the changes - if any
-4. Push the changes - if needed
-
-```yaml
-bicep-docs:
-  runs-on: ubuntu-latest
-  permissions:
-    contents: write
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Generate documentation for Bicep modules
-      uses: christosgalano/bicep-docs@v1.0.0
-      with:
-        input: ./bicep # path relative to workspace
-        verbose: true
-
-    - name: Commit changes - if any
-      id: check-changes
-      run: |
-        git config --local user.name "github-actions[bot]"
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git diff --quiet --exit-code -- ./bicep || UPDATED=true
-        if [[ "$UPDATED" == "true" ]]; then
-          git add ./bicep
-          echo "changed=true" >> $GITHUB_ENV
-          git commit -m "Updated documentation for Bicep modules"
-        fi
-
-    - name: Push changes - if needed
-      if: steps.check-changes.outputs.changed == 'true'
-      uses: ad-m/github-push-action@master
-      with:
-        branch: ${{ github.ref }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## License
