@@ -18,11 +18,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 # Final image
 FROM alpine:3.19
 
-# Install utilities
-# RUN apt-get update && apt-get install -y curl
-
-# Install Azure CLI
-# RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+# Install bash
+RUN apk add --no-cache bash
 
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
