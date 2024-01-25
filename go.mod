@@ -1,6 +1,6 @@
 module github.com/christosgalano/bicep-docs
 
-go 1.21.5
+go 1.21
 
 require (
 	github.com/google/uuid v1.6.0
