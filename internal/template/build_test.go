@@ -62,3 +62,36 @@ func TestBuildBicepTemplate(t *testing.T) {
 		})
 	}
 }
+
+func Test_commandExists(t *testing.T) {
+	type args struct {
+		cmd string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "ls",
+			args: args{
+				cmd: "ls",
+			},
+			want: true,
+		},
+		{
+			name: "non existent command",
+			args: args{
+				cmd: "some-non-existent-command",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := commandExists(tt.args.cmd); got != tt.want {
+				t.Fatalf("commandExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
