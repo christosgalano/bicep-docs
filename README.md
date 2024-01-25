@@ -52,7 +52,7 @@ The default value for the output is `README.md`, relative to the directory where
 
 **CAUTION:** If the Markdown file already exists, it will be **overwritten**.
 
-**NOTE:** to run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
+**NOTE:** To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
 
 ### Example usage
 
@@ -105,6 +105,8 @@ This tool is extremely useful if you are following this structure for your Bicep
 ## GitHub Action
 
 bicep-docs can also be used as a GitHub Action to generate the documentation for Bicep modules in a repository.
+
+**NOTE:** It is a Container action, which is only supported on Linux runners.
 
 ### Syntax
 
