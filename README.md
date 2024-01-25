@@ -80,6 +80,8 @@ Parse the current directory and generate a README.md file for each main.bicep fi
 bicep-docs
 ```
 
+More examples can be found [here](examples).
+
 ### Bicep folder structure
 
 This tool is extremely useful if you are following this structure for your Bicep projects:
