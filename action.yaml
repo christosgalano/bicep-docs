@@ -18,9 +18,28 @@ inputs:
     required: false
     default: 'false'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.input }}
-    - ${{ inputs.output }}
-    - ${{ inputs.verbose == 'true' && '--verbose' || '' }}
+  using: 'composite'
+  steps:
+    - name: Check if Go is installed
+      run: |
+        if ! command -v go &> /dev/null
+        then
+          wget https://golang.org/dl/go1.21.5.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+        fi
+      shell: bash
+    - name: Check if Bicep CLI is installed
+      run: |
+        if ! command -v bicep &> /dev/null
+        then
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+        fi
+      shell: bash
+    - name: Install bicep-docs
+      run: |
+        go install github.com/christosgalano/bicep-docs/cmd/bicep-docs@latest
+        bicep-docs -i ${{ inputs.input }} -o ${{ inputs.output }} ${{ inputs.verbose == 'true' && '--verbose' || '' }}
+      shell: bash
