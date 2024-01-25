@@ -16,10 +16,13 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 
 # Final image
-FROM mcr.microsoft.com/azure-cli
+FROM alpine:3.19
 
-# Remove the existing Azure CLI installation directory
-RUN rm -rf /github/home/.azure/bin
+# Install bash
+RUN apk add --no-cache bash
+
+# Add /github/home/.azure/bin to PATH
+ENV PATH="/github/home/.azure/bin:${PATH}"
 
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
