@@ -1,5 +1,4 @@
 #!/bin/bash
 
-ln -s /github/home/.azure/bin/az /usr/bin/az
-
+export PATH="/usr/bin/az:${PATH}"
 /app/bicep-docs --input "$1" --output "$2" "$3"
