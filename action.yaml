@@ -21,6 +21,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - --input=${{ inputs.input }}
-    - --output=${{ inputs.output }}
-    - --verbose=${{ inputs.verbose }}
+    - ${{ inputs.input }}
+    - ${{ inputs.output }}
+    - ${{ inputs.verbose == 'true' && '--verbose' || '' }}
