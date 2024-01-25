@@ -57,6 +57,10 @@ func commandExists(cmd string) bool {
 
 	fmt.Println(err)
 
+	// Print the PATH
+	path := os.Getenv("PATH")
+	fmt.Println(path)
+
 	return err == nil
 }
 
