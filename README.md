@@ -10,6 +10,7 @@
 - [Description](#description)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Description
@@ -100,6 +101,10 @@ This tool is extremely useful if you are following this structure for your Bicep
 │   │   │   └── README.md
 │   │   └── ...
 ```
+
+## Contributing
+
+Information about contributing to this project can be found [here](CONTRIBUTING.md).
 
 ## License
 
