@@ -52,6 +52,8 @@ The default value for the output is `README.md`, relative to the directory where
 
 **CAUTION:** If the Markdown file already exists, it will be **overwritten**.
 
+**NOTE:** to run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
+
 ### Example usage
 
 Parse a Bicep file and generate a Markdown file with verbose output:

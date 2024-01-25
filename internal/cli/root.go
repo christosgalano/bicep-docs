@@ -33,6 +33,8 @@ If the input is a Bicep file, the output must be a file; otherwise an error will
 The default value for the output is README.md, relative to the directory where the command is executed.
 
 If the Markdown file already exists, it will be overwritten.
+
+Azure CLI or the Bicep CLI must be installed for this tool to work.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := generateDocs(input, output, verbose)
