@@ -18,6 +18,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 # Final image
 FROM mcr.microsoft.com/azure-cli
 
+# Remove the existing Azure CLI installation directory
+RUN rm -rf /github/home/.azure/bin
+
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
 COPY --from=build /app/entrypoint.sh /app/entrypoint.sh
