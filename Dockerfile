@@ -16,10 +16,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o bicep-docs ./cmd/bicep-docs/main.go
 
 # Final image
-FROM alpine:3.19
-
-# Install bash
-RUN apk add --no-cache bash
+FROM mcr.microsoft.com/azure-cli
 
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
