@@ -55,11 +55,7 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 
-	// If the command does not exist, check if it exists in the GitHub Actions runner
-	if err != nil {
-		os.Setenv("PATH", os.Getenv("PATH")+":/github/home/.azure/bin")
-		_, err = exec.LookPath(cmd)
-	}
+	fmt.Println(err)
 
 	return err == nil
 }

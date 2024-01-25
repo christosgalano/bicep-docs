@@ -21,9 +21,6 @@ FROM alpine:3.19
 # Install bash
 RUN apk add --no-cache bash
 
-# Add /github/home/.azure/bin to PATH
-ENV PATH="/github/home/.azure/bin:${PATH}"
-
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
 COPY --from=build /app/entrypoint.sh /app/entrypoint.sh
