@@ -21,19 +21,6 @@ FROM alpine:3.19
 # Install bash
 RUN apk add --no-cache bash
 
-# Install bash and curl
-RUN apk add --no-cache bash curl
-
-# Install Azure CLI
-RUN apk add py-pip && \
-    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make && \
-    pip --no-cache-dir install azure-cli
-
-# Install Bicep CLI
-RUN curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64 && \
-    chmod +x ./bicep && \
-    mv ./bicep /usr/local/bin/bicep
-
 # Copy the binary and entrypoint.sh from the build stage
 COPY --from=build /app/bicep-docs /app/bicep-docs
 COPY --from=build /app/entrypoint.sh /app/entrypoint.sh
