@@ -43,7 +43,6 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 	}
 
 	// Run the command and handle any errors
-	cmd.Stderr = os.Stderr
 	if err := runCommand(cmd); err != nil {
 		return "", fmt.Errorf("failed to run command: %w", err)
 	}
