@@ -127,6 +127,7 @@ table of outputs
 
 ```
 
+**NOTE:** The **Description** column of **variables** is left intentionally blank, as it is not currently possible to have metadata for variables.
 
 <details>
   <summary>Example documentation file:</summary>
@@ -166,9 +167,9 @@ Create a storage account.
 
 ## Variables
 
-| Name |
-| --- |
-| test_number |
+| Name | Description |
+| --- | --- |
+| test_number | |
 
 ## Outputs
 
