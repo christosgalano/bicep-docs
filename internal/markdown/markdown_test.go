@@ -152,6 +152,31 @@ func TestCreateFile(t *testing.T) {
 			checkFile: "./testdata/extended.md",
 		},
 		{
+			name: "multiline markup",
+			args: args{
+				filename: "multiline_markup.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Parameters: []types.Parameter{
+						{
+							Name: "storageAccountName",
+							Type: "string",
+							Metadata: &types.Metadata{
+								Description: func() *string {
+									s := "Storage account name restrictions:\n" +
+										"- Storage account names must be between 3 and 24 characters in length and may contain numbers and lowercase letters only.\n" +
+										"- Your storage account name must be unique within Azure. No two storage accounts can have the same name.\n"
+									return &s
+								}(),
+							},
+						},
+					},
+				},
+			},
+			wantErr:   false,
+			checkFile: "./testdata/multiline_markup.md",
+		},
+		{
 			name: "no name",
 			args: args{
 				filename: "no_name.md",
