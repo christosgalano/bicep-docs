@@ -66,7 +66,7 @@ The default value for the output is `README.md`, relative to the directory where
 
 ### Example usage
 
-Parse a Bicep file and generate a Markdown file with verbose output:
+Parse a Bicep file and generate a Markdown file:
 
 ```bash
 bicep-docs --input main.bicep --output readme.md

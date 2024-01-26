@@ -46,7 +46,7 @@ Parse a Bicep file and generate a Markdown file:
 
 Parse a Bicep file and generate a README.md file in the same directory:
 
-	bicep-docs -i main.bicep -m extended
+	bicep-docs -i main.bicep
 
 Parse a directory and generate a README.md file for each main.bicep file with verbose output:
 
