@@ -101,30 +101,31 @@ func buildMarkdownString(template *types.Template) string {
 	var builder strings.Builder
 	builder.WriteString(templateMetadataToMarkdown(template))
 	if len(template.Modules) > 0 {
-		builder.WriteString(modulesToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(modulesToMarkdown(template))
 	}
 	if len(template.Resources) > 0 {
-		builder.WriteString(resourcesToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(resourcesToMarkdown(template))
 	}
 	if len(template.Parameters) > 0 {
-		builder.WriteString(parametersToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(parametersToMarkdown(template))
 	}
 	if len(template.UserDefinedDataTypes) > 0 {
-		builder.WriteString(userDefinedDataTypesToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(userDefinedDataTypesToMarkdown(template))
 	}
 	if len(template.UserDefinedFunctions) > 0 {
-		builder.WriteString(userDefinedFunctionsToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(userDefinedFunctionsToMarkdown(template))
 	}
 	if len(template.Variables) > 0 {
-		builder.WriteString(variablesToMarkdown(template))
 		builder.WriteString("\n")
+		builder.WriteString(variablesToMarkdown(template))
 	}
 	if len(template.Outputs) > 0 {
+		builder.WriteString("\n")
 		builder.WriteString(outputsToMarkdown(template))
 	}
 	return builder.String()
@@ -158,11 +159,6 @@ func templateMetadataToMarkdown(template *types.Template) string {
 	// Add description if it exists
 	if template.Metadata != nil && template.Metadata.Description != nil && *template.Metadata.Description != "" {
 		builder.WriteString(fmt.Sprintf("\n## Description\n\n%s\n", *template.Metadata.Description))
-	}
-
-	// Add a newline if there are any modules, resources, parameters or outputs
-	if len(template.Modules)+len(template.Resources)+len(template.Parameters)+len(template.Outputs) > 0 {
-		builder.WriteString("\n")
 	}
 
 	return builder.String()
