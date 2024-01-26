@@ -33,9 +33,9 @@ Create a storage account.
 
 ## Variables
 
-| Name |
-| --- |
-| test_number |
+| Name | Description |
+| --- | --- |
+| test_number | |
 
 ## Outputs
 
