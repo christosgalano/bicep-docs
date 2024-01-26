@@ -1,5 +1,7 @@
 /*
 Package types provides shared types used by multiple packages in the "bicep-docs" application.
+
+It also provides custom UnmarshalJSON and Sort functions for some of those types.
 */
 package types
 
@@ -45,15 +47,53 @@ type Resource struct {
 }
 
 // Parameter is a struct that contains the information about a parameter.
-// A parameter has a type, an optional default value and an optional metadata part.
+// A parameter has a name, type, an optional default value and an optional metadata part.
 //
-// The type is the type of the parameter (e.g. "string").
-// The default value is the default value of the parameter.
+// The name is the name of the parameter.
+// The type is the type of the parameter (e.g. "string" or even a user defined type).
+// The default value is the optional default value of the parameter.
 // The metadata part is the optional metadata part of the parameter (just the description).
 type Parameter struct {
-	Type         string    `json:"type"`
+	Name         string    `json:"-"`
+	Type         string    `json:"-"`
 	DefaultValue any       `json:"defaultValue"`
 	Metadata     *Metadata `json:"metadata"`
+}
+
+// UserDefinedDataType (UDDT) is a struct that contains the information about a user defined data type.
+// A user defined data type has a name, a type and an optional metadata part.
+//
+// The name is the name of the user defined data type.
+// The type is the type of the user defined data type (e.g. "object" or even including other user defined types).
+// The metadata part is the optional metadata part of the user defined data type (just the description).
+type UserDefinedDataType struct {
+	Name     string    `json:"-"`
+	Type     string    `json:"-"`
+	Metadata *Metadata `json:"metadata"`
+}
+
+// UserDefinedFunction (UDF) is a struct that contains the information about a user defined function.
+// A user defined function has a name, a list of parameters, an output and an optional metadata part.
+//
+// The name is the name of the user defined function.
+// The parameters are the parameters of the user defined function.
+// The output is the output of the user defined function.
+// The metadata part is the optional metadata part of the user defined function (just the description).
+type UserDefinedFunction struct {
+	Name       string      `json:"-"`
+	Parameters []Parameter `json:"parameters"`
+	Output     Output      `json:"output"`
+	Metadata   *Metadata   `json:"metadata"`
+}
+
+// Variable is a struct that contains the information about a variable.
+// A variable has a name and a value.
+//
+// The name is the name of the variable.
+// The value is the value of the variable.
+type Variable struct {
+	Name  string `json:"-"`
+	Value any    `json:"-"`
 }
 
 // Output is a struct that contains the information about an output.
@@ -62,19 +102,23 @@ type Parameter struct {
 // The type is the type of the output (e.g. "string").
 // The metadata part is the optional metadata part of the output (just the description).
 type Output struct {
-	Type     string    `json:"type"`
+	Name     string    `json:"-"`
+	Type     string    `json:"-"`
 	Metadata *Metadata `json:"metadata"`
 }
 
 // Template is a struct that contains the information about a Bicep template.
 //
-// A template has a file name, a list of modules, resources, a map of parameters, outputs
-// and an optional metadata part.
+// A template has a list of: modules, resources, parameters, user defined data types,
+// user defined functions, variables, outputs and an optional metadata part.
 type Template struct {
-	FileName   string               `json:"-"`
-	Modules    []Module             `json:"-"`
-	Resources  []Resource           `json:"-"`
-	Parameters map[string]Parameter `json:"parameters"`
-	Outputs    map[string]Output    `json:"outputs"`
-	Metadata   *Metadata            `json:"metadata"`
+	FileName             string                `json:"-"`
+	Modules              []Module              `json:"-"`
+	Resources            []Resource            `json:"-"`
+	Parameters           []Parameter           `json:"-"`
+	UserDefinedDataTypes []UserDefinedDataType `json:"-"`
+	UserDefinedFunctions []UserDefinedFunction `json:"-"`
+	Variables            []Variable            `json:"-"`
+	Outputs              []Output              `json:"-"`
+	Metadata             *Metadata             `json:"metadata"`
 }

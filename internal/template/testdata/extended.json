@@ -1,0 +1,137 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.24.24.22086",
+      "templateHash": "12255794930538318399"
+    },
+    "name": "test",
+    "description": "This is a test template."
+  },
+  "definitions": {
+    "positiveInt": {
+      "type": "int",
+      "minValue": 1,
+      "metadata": {
+        "description": "This is a user defined type."
+      }
+    },
+    "pint": {
+      "$ref": "#/definitions/positiveInt",
+      "metadata": {
+        "description": "This is a user defined type (alias)."
+      }
+    }
+  },
+  "functions": [
+    {
+      "namespace": "__bicep",
+      "members": {
+        "buildUrl": {
+          "parameters": [
+            {
+              "type": "bool",
+              "name": "https"
+            },
+            {
+              "type": "string",
+              "name": "hostname"
+            },
+            {
+              "type": "string",
+              "name": "path"
+            }
+          ],
+          "output": {
+            "type": "string",
+            "value": "[format('{0}://{1}{2}', if(parameters('https'), 'https', 'http'), parameters('hostname'), if(empty(parameters('path')), '', format('/{0}', parameters('path'))))]"
+          },
+          "metadata": {
+            "description": "This is a user defined function."
+          }
+        },
+        "double": {
+          "parameters": [
+            {
+              "$ref": "#/definitions/pint",
+              "name": "input"
+            }
+          ],
+          "output": {
+            "$ref": "#/definitions/positiveInt",
+            "value": "[mul(parameters('input'), 2)]"
+          },
+          "metadata": {
+            "description": "This is a user defined function with uddts."
+          }
+        }
+      }
+    }
+  ],
+  "parameters": {
+    "test_parameter": {
+      "type": "string",
+      "defaultValue": "test",
+      "metadata": {
+        "description": "This is a test parameter."
+      }
+    }
+  },
+  "variables": {
+    "test_variable": "[format('{0}', parameters('test_parameter'))]"
+  },
+  "resources": {
+    "test_resource": {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a test resource."
+      }
+    },
+    "test_module": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "test",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "languageVersion": "2.0",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.24.24.22086",
+              "templateHash": "17544507034981909662"
+            }
+          },
+          "resources": {}
+        }
+      },
+      "metadata": {
+        "description": "This is a test module."
+      }
+    }
+  },
+  "outputs": {
+    "test_output": {
+      "$ref": "#/definitions/positiveInt",
+      "metadata": {
+        "description": "This is a test output."
+      },
+      "value": 1
+    }
+  }
+}

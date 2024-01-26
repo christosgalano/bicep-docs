@@ -19,7 +19,9 @@ import (
 var (
 	moduleRegex                    = regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
 	resourceRegex                  = regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
+	typeRegex                      = regexp.MustCompile(`^type\s+(\S+)\s+`)
 	outputRegex                    = regexp.MustCompile(`^output\s+(\S+)\s+`)
+	variableRegex                  = regexp.MustCompile(`^var\s+(\S+)\s+`)
 	parameterRegex                 = regexp.MustCompile(`^param\s+(\S+)\s+`)
 	inlineDescriptionRegex         = regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
 	multilineDescriptionStartRegex = regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
@@ -60,7 +62,7 @@ func parseArmTemplate(armFile string, template *types.Template) error {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&template)
 	if err != nil {
-		return fmt.Errorf("failed to decode ARM template: %w", err)
+		return err
 	}
 
 	return nil
@@ -104,9 +106,8 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 			continue
 		}
 
-		// Disregard the description of parameters and outputs
-		matchesP, matchesO := parameterRegex.FindStringSubmatch(line), outputRegex.FindStringSubmatch(line)
-		if matchesP != nil || matchesO != nil {
+		// Ignore the description of parameters, outputs, types, and variables
+		if ignoreDescription(line) {
 			currentDescription = ""
 			continue
 		}
@@ -236,4 +237,15 @@ func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// ignoreDescription returns true if the provided line defines a type, output, variable, or parameter.
+// That is, if the line starts with "type", "output", "var", or "param".
+// Then, the description of the type, output, variable, or parameter should be ignored.
+func ignoreDescription(line string) bool {
+	matchType := typeRegex.FindStringSubmatch(line)
+	matchOutput := outputRegex.FindStringSubmatch(line)
+	matchVariable := variableRegex.FindStringSubmatch(line)
+	matchParameter := parameterRegex.FindStringSubmatch(line)
+	return matchType != nil || matchOutput != nil || matchVariable != nil || matchParameter != nil
 }

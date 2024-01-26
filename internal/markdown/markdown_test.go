@@ -15,6 +15,113 @@ func TestCreateFile(t *testing.T) {
 	templateDescription := "This is a test template."
 	parameterDescription := "This is a test parameter."
 	outputDescription := "This is a test output."
+	basicTemplate := &types.Template{
+		FileName:  "test.bicep",
+		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
+		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		Parameters: []types.Parameter{
+			{
+				Name:         "test_parameter1",
+				Type:         "string",
+				DefaultValue: "test",
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+			{
+				Name:         "test_parameter2",
+				Type:         "object",
+				DefaultValue: map[string]any{},
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+			{
+				Name:         "test_parameter3",
+				Type:         "object",
+				DefaultValue: map[string]any{"key1": "value1"},
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "test_output",
+				Type: "string",
+				Metadata: &types.Metadata{
+					Description: &outputDescription,
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        &templateName,
+			Description: &templateDescription,
+		},
+	}
+	extendedTemplate := &types.Template{
+		FileName:  "test.bicep",
+		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
+		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		Parameters: []types.Parameter{
+			{
+				Name:         "test_parameter",
+				Type:         "string",
+				DefaultValue: "test",
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+		},
+		UserDefinedDataTypes: []types.UserDefinedDataType{
+			{
+				Name: "pint",
+				Type: "#/definitions/positiveInt",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type (alias)."; return &s }(),
+				},
+			},
+			{
+				Name: "positiveInt",
+				Type: "int",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type."; return &s }(),
+				},
+			},
+		},
+		UserDefinedFunctions: []types.UserDefinedFunction{
+			{
+				Name: "buildUrl",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined function."; return &s }(),
+				},
+			},
+			{
+				Name: "double",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined function with uddts."; return &s }(),
+				},
+			},
+		},
+		Variables: []types.Variable{
+			{
+				Name: "test_variable",
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "test_output",
+				Type: "#/definitions/positiveInt",
+				Metadata: &types.Metadata{
+					Description: &outputDescription,
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        &templateName,
+			Description: &templateDescription,
+		},
+	}
 
 	type args struct {
 		filename string
@@ -27,52 +134,22 @@ func TestCreateFile(t *testing.T) {
 		checkFile string
 	}{
 		{
-			name: "full template",
+			name: "basic template",
 			args: args{
-				filename: "full_template.md",
-				template: &types.Template{
-					FileName:  "test.bicep",
-					Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
-					Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
-					Parameters: map[string]types.Parameter{
-						"test_parameter1": {
-							Type:         "string",
-							DefaultValue: "test",
-							Metadata: &types.Metadata{
-								Description: &parameterDescription,
-							},
-						},
-						"test_parameter2": {
-							Type:         "object",
-							DefaultValue: map[string]any{},
-							Metadata: &types.Metadata{
-								Description: &parameterDescription,
-							},
-						},
-						"test_parameter3": {
-							Type:         "object",
-							DefaultValue: map[string]any{"key1": "value1"},
-							Metadata: &types.Metadata{
-								Description: &parameterDescription,
-							},
-						},
-					},
-					Outputs: map[string]types.Output{
-						"test_output": {
-							Type: "string",
-							Metadata: &types.Metadata{
-								Description: &outputDescription,
-							},
-						},
-					},
-					Metadata: &types.Metadata{
-						Name:        &templateName,
-						Description: &templateDescription,
-					},
-				},
+				filename: "basic.md",
+				template: basicTemplate,
 			},
 			wantErr:   false,
-			checkFile: "./testdata/full_template.md",
+			checkFile: "./testdata/basic.md",
+		},
+		{
+			name: "extended template",
+			args: args{
+				filename: "extended.md",
+				template: extendedTemplate,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/extended.md",
 		},
 		{
 			name: "no name",
@@ -170,7 +247,7 @@ func Test_checkFileExists(t *testing.T) {
 	}{
 		{
 			name:    "file exists",
-			args:    args{filename: "./testdata/full_template.md"},
+			args:    args{filename: "./testdata/basic.md"},
 			want:    true,
 			wantErr: false,
 		},

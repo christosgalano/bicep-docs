@@ -61,5 +61,8 @@
     ],
     "code_blocks": false
   },
-  "no-alt-text": true
+  "no-alt-text": true,
+  "no-inline-html": false,
+  "no-duplicate-heading": false,
+  "single-title": false
 }

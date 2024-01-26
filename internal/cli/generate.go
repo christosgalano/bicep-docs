@@ -20,9 +20,9 @@ func generateDocs(input, output string, verbose bool) error {
 	f, err := os.Stat(input)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("no such file or directory %q: %w", input, err)
+			return fmt.Errorf("no such file or directory %q", input)
 		}
-		return fmt.Errorf("failed to stat file %q: %w", input, err)
+		return err
 	}
 
 	if f.IsDir() {
@@ -69,7 +69,8 @@ func generateDocsFromDirectory(dirPath string, verbose bool) error {
 // First it builds the Bicep template into an ARM template.
 //
 // Then it parses both Bicep and ARM templates gathering information about
-// the template's resources, modules, parameters, outputs, and metadata.
+// the template's resources, modules, parameters, user defined data types,
+// user defined functions, variables, outputs, and metadata.
 //
 // Finally it creates a corresponding Markdown file based on the gathered information
 // and deletes the ARM template.
@@ -84,14 +85,14 @@ func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) err
 	defer os.Remove(armFile)
 
 	// Parse both Bicep and ARM templates
-	var t *types.Template
-	t, err = template.ParseTemplates(bicepFile, armFile)
+	var tmpl *types.Template
+	tmpl, err = template.ParseTemplates(bicepFile, armFile)
 	if err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 
 	// Create/Update Markdown file
-	if err := markdown.CreateFile(markdownFile, t, verbose); err != nil {
+	if err := markdown.CreateFile(markdownFile, tmpl, verbose); err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 

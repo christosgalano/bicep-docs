@@ -17,7 +17,7 @@ func TestBuildBicepTemplate(t *testing.T) {
 		{
 			name: "valid bicep file",
 			args: args{
-				bicepFile: "./testdata/main.bicep",
+				bicepFile: "./testdata/basic.bicep",
 			},
 			wantErr: false,
 		},

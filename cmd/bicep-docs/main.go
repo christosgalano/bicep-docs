@@ -36,25 +36,26 @@ The default value for the output is `README.md`, relative to he directory where 
 
 If the Markdown file already exists, it will be overwritten.
 
+If mode is set to extended then the following are included in the Markdown:
+- User Defined Data Types
+- User Defined Functions
+- Variables
+
 Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install) for this tool to work.
 
 Example usage:
 
-Parse a Bicep file and generate a Markdown file:
+Parse a Bicep file and generate a Markdown file with basic mode (default):
 
 	bicep-docs -i main.bicep -o readme.md
 
-Parse a Bicep file and generate a README.md file in the same directory:
+Parse a Bicep file and generate a README.md file in the same directory with extended mode:
 
-	bicep-docs -i main.bicep
+	bicep-docs -i main.bicep -m extended
 
-Parse a directory and generate a README.md file for each main.bicep file:
+Parse a directory and generate a README.md file for each main.bicep file with verbose output:
 
-	bicep-docs -i ./bicep
-
-Parse the current directory and generate a README.md file for each main.bicep file:
-
-	bicep-docs
+	bicep-docs --input ./bicep --verbose
 
 For full usage details, run `bicep-docs --help`.
 */

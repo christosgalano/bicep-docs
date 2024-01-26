@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/christosgalano/bicep-docs/internal/types"
@@ -113,6 +112,18 @@ func buildMarkdownString(template *types.Template) string {
 		builder.WriteString(parametersToMarkdown(template))
 		builder.WriteString("\n")
 	}
+	if len(template.UserDefinedDataTypes) > 0 {
+		builder.WriteString(userDefinedDataTypesToMarkdown(template))
+		builder.WriteString("\n")
+	}
+	if len(template.UserDefinedFunctions) > 0 {
+		builder.WriteString(userDefinedFunctionsToMarkdown(template))
+		builder.WriteString("\n")
+	}
+	if len(template.Variables) > 0 {
+		builder.WriteString(variablesToMarkdown(template))
+		builder.WriteString("\n")
+	}
 	if len(template.Outputs) > 0 {
 		builder.WriteString(outputsToMarkdown(template))
 	}
@@ -193,19 +204,10 @@ func parametersToMarkdown(template *types.Template) string {
 	if len(template.Parameters) > 0 {
 		builder.WriteString("## Parameters\n\n")
 		builder.WriteString(generateTableHeaders(parameterHeaders))
-
-		// Sort the parameter names
-		sortedParameters := make([]string, 0, len(template.Parameters))
-		for name := range template.Parameters {
-			sortedParameters = append(sortedParameters, name)
-		}
-		sort.Strings(sortedParameters)
-
-		for _, name := range sortedParameters {
+		for _, parameter := range template.Parameters {
 			defaultValue := ""
-			param := template.Parameters[name]
-			if param.DefaultValue != nil {
-				if dv, ok := param.DefaultValue.(map[string]any); ok {
+			if parameter.DefaultValue != nil {
+				if dv, ok := parameter.DefaultValue.(map[string]any); ok {
 					if len(dv) == 0 {
 						defaultValue = "{}"
 					} else {
@@ -221,10 +223,17 @@ func parametersToMarkdown(template *types.Template) string {
 						}
 					}
 				} else {
-					defaultValue = fmt.Sprintf("%v", param.DefaultValue)
+					defaultValue = fmt.Sprintf("%v", parameter.DefaultValue)
 				}
 			}
-			builder.WriteString(fmt.Sprintf("| %s | %s | %s | %s |\n", name, param.Type, extractDescription(param.Metadata), defaultValue))
+			builder.WriteString(
+				fmt.Sprintf("| %s | %s | %s | %s |\n",
+					parameter.Name,
+					extractType(parameter.Type),
+					extractDescription(parameter.Metadata),
+					defaultValue,
+				),
+			)
 		}
 	}
 	return builder.String()
@@ -237,20 +246,80 @@ func outputsToMarkdown(template *types.Template) string {
 	if len(template.Outputs) > 0 {
 		builder.WriteString("## Outputs\n\n")
 		builder.WriteString(generateTableHeaders(outputHeaders))
-
-		// Sort the output names
-		sortedOutputs := make([]string, 0, len(template.Outputs))
-		for name := range template.Outputs {
-			sortedOutputs = append(sortedOutputs, name)
-		}
-		sort.Strings(sortedOutputs)
-
-		for _, name := range sortedOutputs {
-			output := template.Outputs[name]
-			builder.WriteString(fmt.Sprintf("| %s | %s | %s |\n", name, output.Type, extractDescription(output.Metadata)))
+		for _, output := range template.Outputs {
+			builder.WriteString(
+				fmt.Sprintf("| %s | %s | %s |\n",
+					output.Name,
+					extractType(output.Type),
+					extractDescription(output.Metadata),
+				),
+			)
 		}
 	}
 	return builder.String()
+}
+
+// userDefinedDataTypesToMarkdown converts the user defined data types a template to Markdown.
+func userDefinedDataTypesToMarkdown(template *types.Template) string {
+	var builder strings.Builder
+	userDefinedDataTypeHeaders := []string{"Name", "Type", "Description"}
+	if len(template.UserDefinedDataTypes) > 0 {
+		builder.WriteString("## User Defined Data Types (UDDTs)\n\n")
+		builder.WriteString(generateTableHeaders(userDefinedDataTypeHeaders))
+		for _, userDefinedDataType := range template.UserDefinedDataTypes {
+			builder.WriteString(
+				fmt.Sprintf("| %s | %s | %s |\n",
+					userDefinedDataType.Name,
+					extractType(userDefinedDataType.Type),
+					extractDescription(userDefinedDataType.Metadata),
+				),
+			)
+		}
+	}
+	return builder.String()
+}
+
+// userDefinedFunctionsToMarkdown converts the user defined functions a template to Markdown.
+func userDefinedFunctionsToMarkdown(template *types.Template) string {
+	var builder strings.Builder
+	userDefinedFunctionHeaders := []string{"Name", "Description"}
+	if len(template.UserDefinedFunctions) > 0 {
+		builder.WriteString("## User Defined Functions (UDFs)\n\n")
+		builder.WriteString(generateTableHeaders(userDefinedFunctionHeaders))
+		for _, userDefinedFunction := range template.UserDefinedFunctions {
+			builder.WriteString(
+				fmt.Sprintf("| %s | %s |\n",
+					userDefinedFunction.Name,
+					extractDescription(userDefinedFunction.Metadata),
+				),
+			)
+		}
+	}
+	return builder.String()
+}
+
+// variablesToMarkdown converts the variables a template to Markdown.
+func variablesToMarkdown(template *types.Template) string {
+	var builder strings.Builder
+	variableHeaders := []string{"Name"}
+	if len(template.Variables) > 0 {
+		builder.WriteString("## Variables\n\n")
+		builder.WriteString(generateTableHeaders(variableHeaders))
+		for _, variable := range template.Variables {
+			builder.WriteString(fmt.Sprintf("| %s |\n", variable.Name))
+		}
+	}
+	return builder.String()
+}
+
+// extractType extracts the type from a type string.
+// If the type is a user defined data type, it returns the name of it.
+func extractType(t string) string {
+	if strings.HasPrefix(t, "#/definitions/") {
+		split := strings.Split(t, "/")
+		return split[len(split)-1] + " (uddt)"
+	}
+	return t
 }
 
 // extractDescription extracts the description from an entity's metadata.

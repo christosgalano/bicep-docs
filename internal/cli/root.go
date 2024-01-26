@@ -37,8 +37,7 @@ If the Markdown file already exists, it will be overwritten.
 Azure CLI or the Bicep CLI must be installed for this tool to work.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := generateDocs(input, output, verbose)
-		if err != nil {
+		if err := generateDocs(input, output, verbose); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -52,6 +51,7 @@ func Execute() error {
 
 // init initializes the root command.
 func init() {
+
 	// input - optional
 	rootCmd.Flags().StringVarP(
 		&input,

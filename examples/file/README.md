@@ -9,5 +9,5 @@ providing the output file name.
 2. Run the following command:
 
 ```bash
-bicep-docs -i main.bicep -o readme.md
+bicep-docs --input main.bicep --output readme.md --mode extended --verbose
 ```

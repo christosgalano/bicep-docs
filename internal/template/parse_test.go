@@ -13,6 +13,114 @@ import (
 )
 
 func TestParseTemplates(t *testing.T) {
+	templateName := "test"
+	templateDescription := "This is a test template."
+	parameterDescription := "This is a test parameter."
+	outputDescription := "This is a test output."
+	basicTemplate := &types.Template{
+		FileName: "testdata/basic.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "test_module",
+				Source:       "./modules/test_module/main.bicep",
+				Description:  "This is a test module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "test_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a test resource.",
+			},
+		},
+		Parameters: []types.Parameter{
+			{
+				Name:         "test_parameter",
+				Type:         "string",
+				DefaultValue: "test",
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "test_output",
+				Type: "string",
+				Metadata: &types.Metadata{
+					Description: &outputDescription,
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        &templateName,
+			Description: &templateDescription,
+		},
+	}
+	extendedTemplate := &types.Template{
+		FileName:  "testdata/extended.bicep",
+		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
+		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		Parameters: []types.Parameter{
+			{
+				Name:         "test_parameter",
+				Type:         "string",
+				DefaultValue: "test",
+				Metadata: &types.Metadata{
+					Description: &parameterDescription,
+				},
+			},
+		},
+		UserDefinedDataTypes: []types.UserDefinedDataType{
+			{
+				Name: "pint",
+				Type: "#/definitions/positiveInt",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type (alias)."; return &s }(),
+				},
+			},
+			{
+				Name: "positiveInt",
+				Type: "int",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type."; return &s }(),
+				},
+			},
+		},
+		UserDefinedFunctions: []types.UserDefinedFunction{
+			{
+				Name: "buildUrl",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined function."; return &s }(),
+				},
+			},
+			{
+				Name: "double",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined function with uddts."; return &s }(),
+				},
+			},
+		},
+		Variables: []types.Variable{
+			{
+				Name: "test_variable",
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "test_output",
+				Type: "#/definitions/positiveInt",
+				Metadata: &types.Metadata{
+					Description: &outputDescription,
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        &templateName,
+			Description: &templateDescription,
+		},
+	}
+
 	type args struct {
 		bicepFile string
 		armFile   string
@@ -24,49 +132,21 @@ func TestParseTemplates(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "testdata/main.bicep",
+			name: "basic template",
 			args: args{
-				bicepFile: "testdata/main.bicep",
-				armFile:   "testdata/main.json",
+				bicepFile: "testdata/basic.bicep",
+				armFile:   "testdata/basic.json",
 			},
-			want: &types.Template{
-				FileName: "testdata/main.bicep",
-				Modules: []types.Module{
-					{
-						SymbolicName: "test_module",
-						Source:       "./modules/test_module/main.bicep",
-						Description:  "This is a test module.",
-					},
-				},
-				Resources: []types.Resource{
-					{
-						SymbolicName: "test_resource",
-						Type:         "Microsoft.Storage/storageAccounts",
-						Description:  "This is a test resource.",
-					},
-				},
-				Parameters: map[string]types.Parameter{
-					"test_parameter": {
-						Type:         "string",
-						DefaultValue: "test",
-						Metadata: &types.Metadata{
-							Description: func() *string { s := "This is a test parameter."; return &s }(),
-						},
-					},
-				},
-				Outputs: map[string]types.Output{
-					"test_output": {
-						Type: "string",
-						Metadata: &types.Metadata{
-							Description: func() *string { s := "This is a test output."; return &s }(),
-						},
-					},
-				},
-				Metadata: &types.Metadata{
-					Name:        func() *string { s := "test"; return &s }(),
-					Description: func() *string { s := "This is a test template."; return &s }(),
-				},
+			want:    basicTemplate,
+			wantErr: false,
+		},
+		{
+			name: "extended template",
+			args: args{
+				bicepFile: "testdata/extended.bicep",
+				armFile:   "testdata/extended.json",
 			},
+			want:    extendedTemplate,
 			wantErr: false,
 		},
 		{
@@ -119,7 +199,7 @@ func TestParseTemplates(t *testing.T) {
 
 func BenchmarkParseTemplates(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := ParseTemplates("testdata/main.bicep", "testdata/main.json")
+		_, err := ParseTemplates("testdata/extended.bicep", "testdata/extended.json")
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -138,9 +218,9 @@ func Test_parseBicepTemplate(t *testing.T) {
 		wantErr       bool
 	}{
 		{
-			name: "testdata/main.bicep",
+			name: "testdata/basic.bicep",
 			args: args{
-				bicepFile: "testdata/main.bicep",
+				bicepFile: "testdata/basic.bicep",
 			},
 			wantModules: []types.Module{
 				{
