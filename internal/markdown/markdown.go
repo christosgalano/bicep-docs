@@ -307,14 +307,15 @@ func userDefinedFunctionsToMarkdown(template *types.Template) string {
 }
 
 // variablesToMarkdown converts the variables a template to Markdown.
+// The description column is left empty because it is not currently supported in Bicep.
 func variablesToMarkdown(template *types.Template) string {
 	var builder strings.Builder
-	variableHeaders := []string{"Name"}
+	variableHeaders := []string{"Name", "Description"}
 	if len(template.Variables) > 0 {
 		builder.WriteString("## Variables\n\n")
 		builder.WriteString(generateTableHeaders(variableHeaders))
 		for _, variable := range template.Variables {
-			builder.WriteString(fmt.Sprintf("| %s |\n", variable.Name))
+			builder.WriteString(fmt.Sprintf("| %s | |\n", variable.Name))
 		}
 	}
 	return builder.String()

@@ -38,9 +38,9 @@ This is a test template.
 
 ## Variables
 
-| Name |
-| --- |
-| test_variable |
+| Name | Description |
+| --- | --- |
+| test_variable | |
 
 ## Outputs
 
