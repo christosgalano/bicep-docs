@@ -56,19 +56,23 @@ jobs:
       with:
         go-version-file: 'go.mod'
 
+    - name: Cache installed Go packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/go/bin
+          ~/go/pkg
+        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-bin-
+
+    - run:
+
     - name: Install Task
       run: go install github.com/go-task/task/v3/cmd/task@latest
 
     - name: Install Go tools
       run: task setup:test
-
-    - name: Cache installed Go packages
-      uses: actions/cache@v4
-      with:
-        path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-bin-
 
     - name: Test
       id: test
