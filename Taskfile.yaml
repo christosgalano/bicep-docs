@@ -13,7 +13,8 @@ tasks:
     desc: Run all setup tasks
     cmds:
       - task setup:mod
-      - task setup:go-tools
+      - task setup:lint
+      - task setup:test
     silent: true
 
   setup:mod:
@@ -25,13 +26,16 @@ tasks:
       - go mod tidy
     silent: true
 
-  setup:go-tools:
-    desc: Install necessary Go tools
-    aliases:
-      - 'tools'
+  setup:lint:
+    desc: Install necessary linting tools
     cmds:
       - go install github.com/mgechev/revive@latest # revive for linting
       - go install golang.org/x/tools/cmd/deadcode@latest # deadcode
+    silent: true
+
+  setup:test:
+    desc: Install necessary testing tools
+    cmds:
       - go install gotest.tools/gotestsum@latest # gotestsum for testing
       - go install github.com/axw/gocov/gocov@latest # gocov for coverage
       - go install github.com/AlekSi/gocov-xml@latest # gocov-xml for coverage
