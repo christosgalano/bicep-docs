@@ -102,7 +102,7 @@ jobs:
       if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
       id: readme
       run: |
-        task coverage:badge
+        ./.github/scripts/coverage-badge.sh
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
         git diff --quiet --exit-code -- README.md || UPDATED=true
