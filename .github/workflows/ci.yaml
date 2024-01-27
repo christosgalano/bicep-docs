@@ -35,10 +35,7 @@ jobs:
           ${{ runner.os }}-go-
 
     - name: Install Task
-      uses: arduino/setup-task@v1
-      with:
-        version: 3.x
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      run: go install github.com/go-task/task/v3/cmd/task@latest
 
     - name: Install Go tools
       run: task setup:lint
@@ -76,10 +73,7 @@ jobs:
           ${{ runner.os }}-go-
 
     - name: Install Task
-      uses: arduino/setup-task@v1
-      with:
-        version: 3.x
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      run: go install github.com/go-task/task/v3/cmd/task@latest
 
     - name: Install Go tools
       run: task setup:test
