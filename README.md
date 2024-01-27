@@ -1,7 +1,7 @@
 # bicep-docs
 
 [![ci](https://github.com/christosgalano/bicep-docs/actions/workflows/ci.yaml/badge.svg?branch=main&event=push)](https://github.com/christosgalano/bicep-docs/actions/workflows/ci.yaml)
-[![Code Coverage](https://img.shields.io/badge/coverage-%25-orange)](https://img.shields.io/badge/coverage-%25-orange)
+[![Code Coverage](https://img.shields.io/badge/coverage-88.5%25-31C754)](https://img.shields.io/badge/coverage-88.5%25-31C754)
 [![Go Report Card](https://goreportcard.com/badge/github.com/christosgalano/bicep-docs)](https://goreportcard.com/report/github.com/christosgalano/bicep-docs)
 [![Go Reference](https://pkg.go.dev/badge/github.com/christosgalano/bicep-docs.svg)](https://pkg.go.dev/github.com/christosgalano/bicep-docs)
 
