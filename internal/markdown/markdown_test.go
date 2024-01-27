@@ -306,20 +306,24 @@ func Test_checkFileExists(t *testing.T) {
 // compareFiles compares the contents of two files.
 func compareFiles(file1, file2 string) error {
 	// Read the contents of the first file
-	bytes1, err := os.ReadFile(file1)
+	generatedContent, err := os.ReadFile(file1)
 	if err != nil {
 		return fmt.Errorf("failed to read %s: %w", file1, err)
 	}
 
 	// Read the contents of the second file
-	bytes2, err := os.ReadFile(file2)
+	expectedContent, err := os.ReadFile(file2)
 	if err != nil {
 		return fmt.Errorf("failed to read %s: %w", file2, err)
 	}
 
+	// Normalize the newline characters
+	generatedContent = bytes.ReplaceAll(generatedContent, []byte("\r\n"), []byte("\n"))
+	expectedContent = bytes.ReplaceAll(expectedContent, []byte("\r\n"), []byte("\n"))
+
 	// Compare the contents of the two files
-	if !bytes.Equal(bytes1, bytes2) {
-		return fmt.Errorf("contents of %s and %s are not the same:\n%s\n------\n%s", file1, file2, string(bytes1), string(bytes2))
+	if !bytes.Equal(generatedContent, expectedContent) {
+		return fmt.Errorf("contents of %s and %s are not the same:\n%s\n------\n%s", file1, file2, generatedContent, expectedContent)
 	}
 
 	return nil
