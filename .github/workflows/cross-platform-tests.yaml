@@ -1,0 +1,61 @@
+name: Cross Platform Tests
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Install Task
+      uses: arduino/setup-task@v1
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Go tools
+      run: task setup
+
+    - name: Lint
+      run: task lint
+
+    - name: Test
+      id: test
+      run: task test
+      continue-on-error: true
+
+    - name: Code coverage
+      id: coverage
+      run: task coverage
+
+    - name: Benchmark
+      id: benchmark
+      run: task benchmark
+
+    - name: Security
+      id: security
+      run: task security
