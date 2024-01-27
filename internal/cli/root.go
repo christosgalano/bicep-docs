@@ -51,8 +51,7 @@ func Execute() error {
 
 // init initializes the root command.
 func init() {
-
-	// input - optional
+	// input - required
 	rootCmd.Flags().StringVarP(
 		&input,
 		"input",
@@ -60,7 +59,10 @@ func init() {
 		"",
 		"input Bicep file or directory",
 	)
-	rootCmd.MarkFlagRequired("input")
+	if err := rootCmd.MarkFlagRequired("input"); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	// output - optional
 	rootCmd.Flags().StringVarP(
