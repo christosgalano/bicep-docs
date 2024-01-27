@@ -172,11 +172,13 @@ func modulesToMarkdown(template *types.Template) string {
 		builder.WriteString("## Modules\n\n")
 		builder.WriteString(generateTableHeaders(moduleHeaders))
 		for _, module := range template.Modules {
+			description := strings.ReplaceAll(module.Description, "\r\n", "\n")
+			description = strings.ReplaceAll(description, "\n", "<br>")
 			builder.WriteString(
 				fmt.Sprintf("| %s | %s | %s |\n",
 					module.SymbolicName,
 					module.Source,
-					strings.ReplaceAll(module.Description, "\n", "<br>"),
+					description,
 				),
 			)
 		}
@@ -193,11 +195,13 @@ func resourcesToMarkdown(template *types.Template) string {
 		builder.WriteString(generateTableHeaders(resourceHeaders))
 		for _, resource := range template.Resources {
 			typeLink := fmt.Sprintf("[%s](https://learn.microsoft.com/en-us/azure/templates/%s)", resource.Type, strings.ToLower(resource.Type))
+			description := strings.ReplaceAll(resource.Description, "\r\n", "\n")
+			description = strings.ReplaceAll(description, "\n", "<br>")
 			builder.WriteString(
 				fmt.Sprintf("| %s | %s | %s |\n",
 					resource.SymbolicName,
 					typeLink,
-					strings.ReplaceAll(resource.Description, "\n", "<br>"),
+					description,
 				),
 			)
 		}
@@ -335,7 +339,8 @@ func extractType(t string) string {
 func extractDescription(metadata *types.Metadata) string {
 	description := ""
 	if metadata != nil && metadata.Description != nil {
-		description = strings.ReplaceAll(*metadata.Description, "\n", "<br>")
+		description = strings.ReplaceAll(*metadata.Description, "\r\n", "<br>")
+		description = strings.ReplaceAll(description, "\n", "<br>")
 	}
 	return description
 }
