@@ -15,8 +15,6 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -43,11 +41,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
-    permissions:
-      contents: write
-      issues: read
-      checks: write
-      pull-requests: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -65,19 +58,11 @@ jobs:
 
     - name: Test
       id: test
-      run: task test:junit
-      continue-on-error: true
+      run: task test
 
     - name: Code coverage
       id: coverage
-      run: task coverage:junit
-      continue-on-error: true
-
-    - name: Fail if tests failed
-      if: steps.test.outcome == 'failure' || steps.coverage.outcome == 'failure'
-      run: |
-        echo "Tests failed ..."
-        exit 1
+      run: task coverage
 
     - name: Benchmark
       run: task benchmark
@@ -91,6 +76,9 @@ jobs:
     permissions:
       contents: write
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Check if README changed
       if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
       id: readme
