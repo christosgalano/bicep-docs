@@ -42,6 +42,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
     permissions:
       contents: write
       issues: read
@@ -55,20 +56,6 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
-
-    - name: Cache installed Go packages
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/go/bin
-          ~/go/pkg
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-bin-
-
-    - run: |
-        ls -la ~/go/bin
-        ls -la ~/go/pkg
 
     - name: Install Task
       run: go install github.com/go-task/task/v3/cmd/task@latest
