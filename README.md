@@ -93,7 +93,7 @@ The documentation has the following format:
 ```markdown
 # module name | file name
 
-## Descripton
+## Description
 
 ...
 
