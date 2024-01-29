@@ -34,11 +34,12 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 	// 3. If 'az' exists, run 'az bicep build'
 	// 4. If 'az' does not exist, return an error
 	var cmd *exec.Cmd
-	if commandExists("bicep") {
+	switch {
+	case commandExists("bicep"):
 		cmd = exec.Command("bicep", "build", bicepFile, "--outfile", armFile)
-	} else if commandExists("az") {
+	case commandExists("az"):
 		cmd = exec.Command("az", "bicep", "build", "--file", bicepFile, "--outfile", armFile)
-	} else {
+	default:
 		return "", fmt.Errorf("neither 'bicep' nor 'az' commands were found")
 	}
 
@@ -60,9 +61,6 @@ func commandExists(cmd string) bool {
 func runCommand(cmd *exec.Cmd) error {
 	err := cmd.Run()
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf("%s: %s", err, exitError.Stderr)
-		}
 		return err
 	}
 	return nil
