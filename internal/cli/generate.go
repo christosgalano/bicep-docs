@@ -35,9 +35,12 @@ func generateDocs(input, output string, verbose bool) error {
 //
 // For each main.bicep file, it creates/updates a README.md file in the same directory.
 func generateDocsFromDirectory(dirPath string, verbose bool) error {
-	// Create a new errgroup with a limit of 10 goroutines
+	// Maximal number of goroutines
+	const n = 10
+
+	// Create a new errgroup with a limit of n goroutines
 	g := new(errgroup.Group)
-	g.SetLimit(10)
+	g.SetLimit(n)
 
 	// Traverse the directory and process each main.bicep file
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
