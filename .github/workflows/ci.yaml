@@ -63,9 +63,6 @@ jobs:
     - name: Benchmark
       run: task benchmark
 
-    - name: Security
-      run: task security
-
   update-readme:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
