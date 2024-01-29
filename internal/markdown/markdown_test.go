@@ -233,15 +233,15 @@ func TestCreateFile(t *testing.T) {
 		},
 	}
 
+	// Create a temporary directory for the output files
+	tempDir, err := os.MkdirTemp("", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a temporary directory for the output files
-			tempDir, err := os.MkdirTemp("", "test")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.RemoveAll(tempDir)
-
 			// Call CreateFile with the filename in the temporary directory
 			filename := filepath.Join(tempDir, tt.args.filename)
 			if err := CreateFile(filename, tt.args.template, false); (err != nil) != tt.wantErr {
@@ -290,7 +290,9 @@ func Test_checkFileExists(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Capture range variable
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := checkFileExists(tt.args.filename)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("checkFileExists() error = %v, wantErr %v", err, tt.wantErr)
