@@ -129,10 +129,12 @@ table of outputs
 
 **NOTE:** The **Description** column of **variables** is left intentionally blank, as it is not currently possible to have metadata for variables.
 
+<!-- markdownlint-disable -->
 <details>
   <summary>Example documentation file:</summary>
 
 # storage account
+
 
 ## Description
 
@@ -179,6 +181,7 @@ Create a storage account.
 | resourceId | string | Resource ID of the storage account. |
 
 </details>
+<!-- markdownlint-enable -->
 
 ### Bicep folder structure
 
@@ -201,7 +204,6 @@ This tool is extremely useful if you are following this structure for your Bicep
 │   │   │   └── README.md
 │   │   └── ...
 ```
-
 
 ## Contributing
 
