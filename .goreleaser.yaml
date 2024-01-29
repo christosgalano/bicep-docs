@@ -1,5 +1,10 @@
 project_name: bicep-docs
 
+release:
+  github:
+    owner: christosgalano
+    name: bicep-docs
+
 before:
   hooks:
     - go mod tidy
@@ -23,8 +28,7 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath
-    ldflags:
-      - -s -w
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
 
 archives:
   - id: bicep-docs
@@ -39,15 +43,11 @@ archives:
       - goos: windows
         format: zip
 
-release:
-  draft: true
-  mode: append
-
 checksum:
   name_template: '{{ .ProjectName }}_checksums.txt'
 
 snapshot:
-  name_template: '{{ .Tag }}'
+  name_template: SNAPSHOT-{{ .Commit }}
 
 sboms:
   - artifacts: binary
@@ -59,12 +59,13 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - 'README.md'
       - 'LICENSE'
       - 'CONTRIBUTING.md'
       - 'CODE_OF_CONDUCT.md'
       - '^testdata:'
       - '.*_test.go'
+      - Merge pull request
+      - Merge branch
 
 nfpms:
   - package_name: bicep-docs
