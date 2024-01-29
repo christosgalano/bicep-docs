@@ -49,7 +49,7 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	return &template, nil
 }
 
-// parseArmTemplate decodes an ARM template into a Template struct,
+// parseArmTemplate decodes an ARM template into a Template struct.
 func parseArmTemplate(armFile string, template *types.Template) error {
 	// Open JSON file
 	file, err := os.Open(armFile)
@@ -168,15 +168,16 @@ func parseDescription(line string, scanner *bufio.Scanner) *string {
 		// otherwise, keep consuming lines until a closing parenthesis is found.
 		for scanner.Scan() {
 			line = scanner.Text()
-			if strings.Contains(line, "'''") {
+			switch {
+			case strings.Contains(line, "'''") && strings.HasSuffix(line, ")"):
 				description += strings.Split(line, "'''")[0]
-				if strings.HasSuffix(line, ")") {
-					return &description
-				}
-				afterMultilineTicks = true
-			} else if afterMultilineTicks && strings.HasSuffix(line, ")") {
 				return &description
-			} else {
+			case strings.Contains(line, "'''"):
+				description += strings.Split(line, "'''")[0]
+				afterMultilineTicks = true
+			case afterMultilineTicks && strings.HasSuffix(line, ")"):
+				return &description
+			default:
 				description += strings.TrimSpace(line)
 			}
 		}
