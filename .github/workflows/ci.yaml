@@ -24,14 +24,10 @@ jobs:
       with:
         go-version-file: 'go.mod'
 
-    - name: Install Task
-      run: go install github.com/go-task/task/v3/cmd/task@latest
-
-    - name: Install Go tools
-      run: task setup:lint
-
-    - name: Lint
-      run: task lint
+    - name: Lint with golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.54
 
   test:
     name: test-${{ matrix.os }}

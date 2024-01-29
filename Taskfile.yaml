@@ -19,8 +19,6 @@ tasks:
 
   setup:mod:
     desc: Download and tidy Go modules
-    aliases:
-      - 'mod'
     cmds:
       - go mod download
       - go mod tidy
@@ -28,17 +26,12 @@ tasks:
 
   setup:lint:
     desc: Install necessary linting tools
-    aliases:
-      - 'lint'
     cmds:
-      - go install github.com/mgechev/revive@latest
-      - go install golang.org/x/tools/cmd/deadcode@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
     silent: true
 
   setup:test:
     desc: Install necessary testing tools
-    aliases:
-      - 'test'
     cmds:
       - go install gotest.tools/gotestsum@latest
       - go install github.com/axw/gocov/gocov@latest
@@ -47,46 +40,8 @@ tasks:
 
   #### Lint ####
   lint:
-    desc: Run all lint tasks
-    cmds:
-      - task lint:fmt
-      - task lint:vet
-      - task lint:revive
-      - task lint:deadcode
-    silent: true
-
-  lint:fmt:
-    desc: Format code
-    aliases:
-      - 'fmt'
-      - 'format'
-    cmds:
-      - gofmt -s -w -l .
-    silent: true
-
-  lint:vet:
-    desc: Vet code
-    aliases:
-      - 'vet'
-    cmds:
-      - go vet ./...
-    silent: true
-
-  lint:revive:
-    desc: Lint code with revive
-    aliases:
-      - 'rv'
-      - 'revive'
-    cmds:
-      - revive -config revive.toml -formatter friendly ./...
-    silent: true
-
-  lint:deadcode:
-    desc: Lint code with deadcode
-    aliases:
-      - 'deadcode'
-    cmds:
-      - deadcode -test ./...
+    desc: Run golangci-lint
+    cmd: golangci-lint run ./...
     silent: true
 
   #### Test ####
@@ -100,45 +55,25 @@ tasks:
   test:markdown:
     desc: Run tests for markdown package
     dir: ./internal/markdown
-    cmds:
-      - gotestsum -f testname
+    cmd: gotestsum -f testname
     silent: true
 
   test:template:
     desc: Run tests for template package
     dir: ./internal/template
-    cmds:
-      - gotestsum -f testname
+    cmd: gotestsum -f testname
     silent: true
 
   coverage:
     desc: Generate coverage information for all packages
-    cmds:
-      - gocov test ./... | gocov report
+    cmd: gocov test ./... | gocov report
     silent: true
 
-  ### Benchmark###
+  ### Benchmark ###
   benchmark:
     desc: Run benchmarks for template package
     dir: ./internal/template
-    cmds:
-      - go test -bench=. -benchmem -count 4
-    silent: true
-
-  #### Security ####
-  security:
-    desc: Run all security tasks
-    cmds:
-      - task security:gosec
-    silent: true
-
-  security:gosec:
-    desc: Run gosec
-    aliases:
-      - 'gosec'
-    cmds:
-      - gosec -exclude=G204,G304 ./internal/...
-      - gosec -exclude=G204,G304 ./cmd/...
+    cmd: go test -bench=. -benchmem -count 4
     silent: true
 
   #### Build ####
@@ -151,10 +86,6 @@ tasks:
   #### Clean ####
   clean:
     desc: Clean binaries
-    aliases:
-      - 'clean'
-    cmds:
-      - rm ./bin/bicep-docs 2> /dev/null
-      - rm -rf ./dist 2> /dev/null
+    cmd: rm ./bin/bicep-docs 2> /dev/null
     silent: true
     ignore_error: true
