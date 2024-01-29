@@ -160,7 +160,9 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := ParseTemplates(tt.args.bicepFile, tt.args.armFile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseTemplates() error = %v, wantErr %v", err, tt.wantErr)
@@ -258,7 +260,9 @@ func Test_parseBicepTemplate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			modules, resources, err := parseBicepTemplate(tt.args.bicepFile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseBicepTemplate() error = %v, wantErr %v", err, tt.wantErr)
@@ -310,7 +314,9 @@ func Test_parseDescription(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := parseDescription(tt.args.line, tt.args.scanner); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseDescription() = %v, want %v", *got, *tt.want)
 			}
@@ -360,7 +366,9 @@ func Test_parseModule(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := parseModule(tt.args.line); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseModule() = %v, want %v", got, tt.want)
 			}
@@ -398,7 +406,9 @@ func Test_parseResource(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := parseResource(tt.args.line); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseResource() = %v, want %v", got, tt.want)
 			}
@@ -442,7 +452,9 @@ func Test_skipComment(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			skipped, err := skipComment(tt.args.line, tt.args.scanner)
 			if err != nil {
 				t.Errorf("skipComment() error = %v", err)
@@ -451,10 +463,8 @@ func Test_skipComment(t *testing.T) {
 				if tt.args.scanner != nil && tt.args.scanner.Scan() {
 					t.Errorf("got %q, want %q", tt.args.scanner.Text(), tt.args.expected)
 				}
-			} else {
-				if tt.args.line != tt.args.expected {
-					t.Errorf("got %q, want %q", tt.args.line, tt.args.expected)
-				}
+			} else if tt.args.line != tt.args.expected {
+				t.Errorf("got %q, want %q", tt.args.line, tt.args.expected)
 			}
 		})
 	}
