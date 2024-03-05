@@ -1,6 +1,8 @@
 package template
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -40,12 +42,12 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 	case commandExists("az"):
 		cmd = exec.Command("az", "bicep", "build", "--file", bicepFile, "--outfile", armFile)
 	default:
-		return "", fmt.Errorf("neither 'bicep' nor 'az' commands were found")
+		return "", fmt.Errorf("error processing %s: neither 'bicep' nor 'az' commands were found", bicepFile)
 	}
 
 	// Run the command and handle any errors
 	if err := runCommand(cmd); err != nil {
-		return "", fmt.Errorf("failed to run command: %w", err)
+		return "", err
 	}
 
 	return armFile, nil
@@ -59,9 +61,20 @@ func commandExists(cmd string) bool {
 
 // runCommand runs a command and returns an error if it fails.
 func runCommand(cmd *exec.Cmd) error {
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	err := cmd.Run()
 	if err != nil {
-		return err
+		// Extract the error message from stderr
+		errorLines := strings.Split(stderr.String(), "\n")
+		for _, line := range errorLines {
+			if strings.Contains(line, "Error") {
+				return errors.New(line)
+			}
+		}
+		return fmt.Errorf("failed to run command: %w", err)
 	}
+
 	return nil
 }

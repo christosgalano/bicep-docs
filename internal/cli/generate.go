@@ -83,7 +83,7 @@ func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) err
 	// Build Bicep template into ARM template
 	armFile, err := template.BuildBicepTemplate(bicepFile)
 	if err != nil {
-		return fmt.Errorf("error processing %s: %w", bicepFile, err)
+		return err
 	}
 	defer os.Remove(armFile)
 
