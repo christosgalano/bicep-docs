@@ -36,6 +36,7 @@ If the Markdown file already exists, it will be overwritten.
 
 Azure CLI or the Bicep CLI must be installed for this tool to work.
 `,
+	//revive:disable:unused-parameter
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := generateDocs(input, output, verbose); err != nil {
 			fmt.Fprintln(os.Stderr, err)
