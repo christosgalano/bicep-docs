@@ -19,6 +19,15 @@ jobs:
       - name: Fetch tags
         run: git fetch --force --tags
 
+      - name: Check version
+        run: |
+          cli_version=$(awk -F'"' '/Version: /{ print $2 }' ./internal/cli/root.go)
+          tag_version=$(echo $GITHUB_REF | awk -F'/' '{ print $3 }')
+          if [ "$cli_version" != "$tag_version" ]; then
+            echo "Version mismatch: $cli_version != $tag_version"
+            exit 1
+          fi
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
