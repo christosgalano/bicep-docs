@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // UnmarshalJSON unmarshals a JSON object into a Parameter.
@@ -138,6 +139,9 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 	}
 
 	for name, value := range aux.Variables {
+		if strings.HasPrefix(name, "$fxv#") {
+			continue
+		}
 		variable := Variable{
 			Name:  name,
 			Value: value,
