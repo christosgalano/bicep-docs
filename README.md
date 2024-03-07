@@ -4,6 +4,7 @@
 [![Code Coverage](https://img.shields.io/badge/coverage-88.9%25-31C754)](https://img.shields.io/badge/coverage-88.9%25-31C754)
 [![Go Report Card](https://goreportcard.com/badge/github.com/christosgalano/bicep-docs)](https://goreportcard.com/report/github.com/christosgalano/bicep-docs)
 [![Go Reference](https://pkg.go.dev/badge/github.com/christosgalano/bicep-docs.svg)](https://pkg.go.dev/github.com/christosgalano/bicep-docs)
+[![Github Downloads](https://img.shields.io/github/downloads/christosgalano/bicep-docs/total.svg)](https://github.com/christosgalano/bicep-docs/releases)
 
 ## Table of contents
 
