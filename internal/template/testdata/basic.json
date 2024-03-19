@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.24.24.22086",
-      "templateHash": "1803293263260778812"
+      "version": "0.26.54.24096",
+      "templateHash": "7207284938110175594"
     },
     "name": "test",
     "description": "This is a test template."
@@ -18,6 +18,9 @@
         "description": "This is a test parameter."
       }
     }
+  },
+  "variables": {
+    "test_variable": "[format('{0}', parameters('test_parameter'))]"
   },
   "resources": [
     {
@@ -48,8 +51,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.24.24.22086",
-              "templateHash": "10876430759223197141"
+              "version": "0.26.54.24096",
+              "templateHash": "6609161197123188811"
             }
           },
           "resources": []

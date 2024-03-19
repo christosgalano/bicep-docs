@@ -5,8 +5,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.24.24.22086",
-      "templateHash": "12255794930538318399"
+      "version": "0.26.54.24096",
+      "templateHash": "11224926885887810184"
     },
     "name": "test",
     "description": "This is a test template."
@@ -108,16 +108,15 @@
         "mode": "Incremental",
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "languageVersion": "2.0",
           "contentVersion": "1.0.0.0",
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.24.24.22086",
-              "templateHash": "17544507034981909662"
+              "version": "0.26.54.24096",
+              "templateHash": "6609161197123188811"
             }
           },
-          "resources": {}
+          "resources": []
         }
       },
       "metadata": {

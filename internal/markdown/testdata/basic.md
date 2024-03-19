@@ -24,6 +24,12 @@ This is a test template.
 | test_parameter2 | object | This is a test parameter. | {} |
 | test_parameter3 | object | This is a test parameter. | {key1: value1} |
 
+## Variables
+
+| Name | Description |
+| --- | --- |
+| test_variable | This is a test variable. |
+
 ## Outputs
 
 | Name | Type | Description |

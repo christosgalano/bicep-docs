@@ -40,7 +40,7 @@ This is a test template.
 
 | Name | Description |
 | --- | --- |
-| test_variable | |
+| test_variable | This is a test variable. |
 
 ## Outputs
 

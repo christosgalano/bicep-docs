@@ -319,7 +319,7 @@ func variablesToMarkdown(template *types.Template) string {
 		builder.WriteString("## Variables\n\n")
 		builder.WriteString(generateTableHeaders(variableHeaders))
 		for _, variable := range template.Variables {
-			builder.WriteString(fmt.Sprintf("| %s | |\n", variable.Name))
+			builder.WriteString(fmt.Sprintf("| %s | %s |\n", variable.Name, variable.Description))
 		}
 	}
 	return builder.String()

@@ -91,9 +91,11 @@ type UserDefinedFunction struct {
 //
 // The name is the name of the variable.
 // The value is the value of the variable.
+// The description is an optional description of the variable.
 type Variable struct {
-	Name  string `json:"-"`
-	Value any    `json:"-"`
+	Name        string `json:"-"`
+	Value       any    `json:"-"`
+	Description string `json:"-"`
 }
 
 // Output is a struct that contains the information about an output.
