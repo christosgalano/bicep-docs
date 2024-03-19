@@ -35,7 +35,8 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	template.FileName = bicepFile
 
 	// Parse Bicep template
-	template.Modules, template.Resources, err = parseBicepTemplate(bicepFile)
+	var variables []types.Variable
+	template.Modules, template.Resources, variables, err = parseBicepTemplate(bicepFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Bicep modules: %w", err)
 	}
@@ -44,6 +45,16 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	err = parseArmTemplate(armFile, &template)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ARM template: %w", err)
+	}
+
+	// Set the description of the variables
+	if len(variables) != len(template.Variables) {
+		return nil, fmt.Errorf("error parsing Bicep variables")
+	}
+	for i := range variables {
+		if variables[i].Name == template.Variables[i].Name {
+			template.Variables[i].Description = variables[i].Description
+		}
 	}
 
 	return &template, nil
@@ -68,17 +79,18 @@ func parseArmTemplate(armFile string, template *types.Template) error {
 	return nil
 }
 
-// parseBicepTemplate extracts information about any existing modules or resources from a Bicep template.
-func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, error) {
+// parseBicepTemplate extracts information about any existing modules, resources and variables from a Bicep template.
+func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, []types.Variable, error) {
 	file, err := os.Open(bicepFile)
 	if err != nil {
-		return []types.Module{}, []types.Resource{}, err
+		return []types.Module{}, []types.Resource{}, []types.Variable{}, err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	modules := []types.Module{}
 	resources := []types.Resource{}
+	variables := []types.Variable{}
 
 	var description *string
 	var line, currentDescription string
@@ -93,7 +105,7 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 		// Skip comment
 		skipped, err := skipComment(line, scanner)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		if skipped {
 			continue
@@ -129,10 +141,19 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 			currentDescription = ""
 			continue
 		}
+
+		// Parse variable
+		variable := parseVariable(line)
+		if variable != nil {
+			variable.Description = currentDescription
+			variables = append(variables, *variable)
+			currentDescription = ""
+			continue
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// Sort the resource symbolic names
@@ -145,7 +166,7 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, err
 		return modules[i].SymbolicName < modules[j].SymbolicName
 	})
 
-	return modules, resources, err
+	return modules, resources, variables, err
 }
 
 // parseDescription extracts the description of a module or resource from a line.
@@ -212,6 +233,17 @@ func parseResource(line string) *types.Resource {
 	return nil
 }
 
+// parseVariable extracts information about a variable from a line.
+func parseVariable(line string) *types.Variable {
+	matches := variableRegex.FindStringSubmatch(line)
+	if matches != nil {
+		return &types.Variable{
+			Name: matches[1],
+		}
+	}
+	return nil
+}
+
 // skipComment skips single line and multiline comments.
 // It returns true if a comment was skipped, false otherwise.
 func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
@@ -246,7 +278,6 @@ func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 func ignoreDescription(line string) bool {
 	matchType := typeRegex.FindStringSubmatch(line)
 	matchOutput := outputRegex.FindStringSubmatch(line)
-	matchVariable := variableRegex.FindStringSubmatch(line)
 	matchParameter := parameterRegex.FindStringSubmatch(line)
-	return matchType != nil || matchOutput != nil || matchVariable != nil || matchParameter != nil
+	return matchType != nil || matchOutput != nil || matchParameter != nil
 }

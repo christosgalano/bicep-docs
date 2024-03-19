@@ -43,6 +43,12 @@ func TestParseTemplates(t *testing.T) {
 				},
 			},
 		},
+		Variables: []types.Variable{
+			{
+				Name:        "test_variable",
+				Description: "This is a test variable.",
+			},
+		},
 		Outputs: []types.Output{
 			{
 				Name: "test_output",
@@ -58,9 +64,21 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	extendedTemplate := &types.Template{
-		FileName:  "testdata/extended.bicep",
-		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
-		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		FileName: "testdata/extended.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "test_module",
+				Source:       "./modules/test_module/main.bicep",
+				Description:  "This is a test module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "test_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a test resource.",
+			},
+		},
 		Parameters: []types.Parameter{
 			{
 				Name:         "test_parameter",
@@ -103,7 +121,8 @@ func TestParseTemplates(t *testing.T) {
 		},
 		Variables: []types.Variable{
 			{
-				Name: "test_variable",
+				Name:        "test_variable",
+				Description: "This is a test variable.",
 			},
 		},
 		Outputs: []types.Output{
@@ -217,6 +236,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 		args          args
 		wantModules   []types.Module
 		wantResources []types.Resource
+		wantVariables []types.Variable
 		wantErr       bool
 	}{
 		{
@@ -238,6 +258,12 @@ func Test_parseBicepTemplate(t *testing.T) {
 					Description:  "This is a test resource.",
 				},
 			},
+			wantVariables: []types.Variable{
+				{
+					Name:        "test_variable",
+					Description: "This is a test variable.",
+				},
+			},
 			wantErr: false,
 		},
 		{
@@ -247,6 +273,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 			},
 			wantModules:   []types.Module{},
 			wantResources: []types.Resource{},
+			wantVariables: []types.Variable{},
 			wantErr:       false,
 		},
 		{
@@ -256,6 +283,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 			},
 			wantModules:   []types.Module{},
 			wantResources: []types.Resource{},
+			wantVariables: []types.Variable{},
 			wantErr:       true,
 		},
 	}
@@ -263,7 +291,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			modules, resources, err := parseBicepTemplate(tt.args.bicepFile)
+			modules, resources, variables, err := parseBicepTemplate(tt.args.bicepFile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseBicepTemplate() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -273,6 +301,9 @@ func Test_parseBicepTemplate(t *testing.T) {
 			}
 			if !reflect.DeepEqual(resources, tt.wantResources) {
 				t.Errorf("parseBicepTemplate() got resources = %v, want %v", resources, tt.wantResources)
+			}
+			if !reflect.DeepEqual(variables, tt.wantVariables) {
+				t.Errorf("parseBicepTemplate() got variables = %v, want %v", variables, tt.wantVariables)
 			}
 		})
 	}

@@ -4,6 +4,7 @@ metadata description = 'This is a test template.'
 @sys.description('This is a test parameter.')
 param test_parameter string = 'test'
 
+@sys.description('This is a test variable.')
 var test_variable = '${test_parameter}'
 
 @minValue(1)

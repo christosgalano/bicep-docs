@@ -16,9 +16,21 @@ func TestCreateFile(t *testing.T) {
 	parameterDescription := "This is a test parameter."
 	outputDescription := "This is a test output."
 	basicTemplate := &types.Template{
-		FileName:  "test.bicep",
-		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
-		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		FileName: "test.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "test_module",
+				Source:       "./modules/test_module/main.bicep",
+				Description:  "This is a test module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "test_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a test resource.",
+			},
+		},
 		Parameters: []types.Parameter{
 			{
 				Name:         "test_parameter1",
@@ -45,6 +57,12 @@ func TestCreateFile(t *testing.T) {
 				},
 			},
 		},
+		Variables: []types.Variable{
+			{
+				Name:        "test_variable",
+				Description: "This is a test variable.",
+			},
+		},
 		Outputs: []types.Output{
 			{
 				Name: "test_output",
@@ -60,9 +78,21 @@ func TestCreateFile(t *testing.T) {
 		},
 	}
 	extendedTemplate := &types.Template{
-		FileName:  "test.bicep",
-		Modules:   []types.Module{{SymbolicName: "test_module", Source: "./modules/test_module/main.bicep", Description: "This is a test module."}},
-		Resources: []types.Resource{{SymbolicName: "test_resource", Type: "Microsoft.Storage/storageAccounts", Description: "This is a test resource."}},
+		FileName: "test.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "test_module",
+				Source:       "./modules/test_module/main.bicep",
+				Description:  "This is a test module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "test_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a test resource.",
+			},
+		},
 		Parameters: []types.Parameter{
 			{
 				Name:         "test_parameter",
@@ -105,7 +135,8 @@ func TestCreateFile(t *testing.T) {
 		},
 		Variables: []types.Variable{
 			{
-				Name: "test_variable",
+				Name:        "test_variable",
+				Description: "This is a test variable.",
 			},
 		},
 		Outputs: []types.Output{
