@@ -98,6 +98,10 @@ The documentation has the following format:
 
 ...
 
+## Usage
+
+...
+
 ## Modules
 
 table of modules
@@ -127,8 +131,6 @@ table of variables
 table of outputs
 
 ```
-
-**NOTE:** The **Description** column of **variables** is left intentionally blank, as it is not currently possible to have metadata for variables.
 
 <!-- markdownlint-disable -->
 <details>
