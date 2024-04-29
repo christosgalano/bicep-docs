@@ -4,6 +4,27 @@
 
 Create a storage account.
 
+## Usage
+
+Here is a basic example of how to use this Bicep module:
+
+```bicep
+module reference_name 'path_to_module | container_registry_reference' = {
+  name: 'deployment_name'
+  params: {
+    // Required parameters
+    name:
+
+    // Optional parameters
+    kind: 'StorageV2'
+    location: '[resourceGroup().location]'
+    skuName: 'Standard_LRS'
+  }
+}
+```
+
+> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.
+
 ## Resources
 
 | Symbolic Name | Type | Description |
@@ -14,10 +35,10 @@ Create a storage account.
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| kind | string | The kind of storage account. | StorageV2 |
-| location | string | Location to deploy the storage account. | [resourceGroup().location] |
+| kind | string | The kind of storage account. | "StorageV2" |
+| location | string | Location to deploy the storage account. | "[resourceGroup().location]" |
 | name | string | Name of the storage account. |  |
-| skuName | string | Name of the storage account's sku. | Standard_LRS |
+| skuName | string | Name of the storage account's sku. | "Standard_LRS" |
 
 ## User Defined Data Types (UDDTs)
 
@@ -35,7 +56,7 @@ Create a storage account.
 
 | Name | Description |
 | --- | --- |
-| test_number | |
+| test_number | Doubles a positive integer. |
 
 ## Outputs
 
