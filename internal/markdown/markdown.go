@@ -16,7 +16,7 @@ import (
 // If the file does not exist or its content differs from the generated Markdown string, the file is created or updated accordingly.
 // The verbose parameter controls whether informational messages are printed to stdout.
 // It returns an error if any operation fails.
-func CreateFile(filename string, template *types.Template, verbose bool) error {
+func CreateFile(filename string, template *types.Template, verbose bool) error { //nolint:gocyclo // This function is complex by design.
 	// Check if template is nil
 	if template == nil {
 		return fmt.Errorf("invalid template (nil)")

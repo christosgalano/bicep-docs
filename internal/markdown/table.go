@@ -221,30 +221,31 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Optional parameters (with a default value).
 	builder.WriteString("\n    // Optional parameters\n")
 	for _, parameter := range template.Parameters {
-		if parameter.DefaultValue != nil {
-			jsonValue, err := json.MarshalIndent(parameter.DefaultValue, "    ", "  ")
-			if err != nil {
-				return "", fmt.Errorf("failed to marshal default value: %w", err)
-			}
-			defaultValue := string(jsonValue)
-
-			// Remove quotes from keys.
-			re := regexp.MustCompile(`"(\w+)":`)
-			defaultValue = re.ReplaceAllString(defaultValue, "$1:")
-
-			// Replace double quotes with single quotes.
-			defaultValue = strings.ReplaceAll(defaultValue, "\"", "'")
-
-			// Remove commas.
-			defaultValue = strings.ReplaceAll(defaultValue, ",", "")
-
-			builder.WriteString(fmt.Sprintf("    %s: %s\n", parameter.Name, defaultValue))
+		if parameter.DefaultValue == nil {
+			continue
 		}
+		jsonValue, err := json.MarshalIndent(parameter.DefaultValue, "    ", "  ")
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal default value: %w", err)
+		}
+		defaultValue := string(jsonValue)
+
+		// Remove quotes from keys.
+		re := regexp.MustCompile(`"(\w+)":`)
+		defaultValue = re.ReplaceAllString(defaultValue, "$1:")
+
+		// Replace double quotes with single quotes.
+		defaultValue = strings.ReplaceAll(defaultValue, "\"", "'")
+
+		// Remove commas.
+		defaultValue = strings.ReplaceAll(defaultValue, ",", "")
+
+		builder.WriteString(fmt.Sprintf("    %s: %s\n", parameter.Name, defaultValue))
 	}
 	builder.WriteString("  }\n")
 	builder.WriteString("}\n")
 	builder.WriteString("```\n")
-	builder.WriteString("\n> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.\n")
+	builder.WriteString("\n> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.\n") //nolint:lll // Ignore long line length.
 
 	return builder.String(), nil
 }

@@ -25,7 +25,6 @@ func checkFileExists(filename string) (bool, error) {
 	return true, nil
 }
 
-// readFileContent reads the content of a file.
 // readFileContent reads the content of a file and returns it as a string.
 // It takes a filename as input and returns the file content and any error encountered.
 func readFileContent(filename string) (string, error) {
