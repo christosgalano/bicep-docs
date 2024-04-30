@@ -14,7 +14,14 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// generateDocs creates/updates Markdown documentation for the given input.
+// generateDocs generates documentation based on the input file or directory.
+//
+// If the input is a directory, it generates documentation for all 'main.bicep' files in the directory.
+// If the input is a Bicep file, it generates documentation for that file only.
+//
+// The output is used only when the input is a Bicep file; in other cases it is always set to 'README.md'.
+//
+// If verbose is true, additional information will be printed during the generation process.
 func generateDocs(input, output string, verbose bool) error {
 	// Non-existing file or directory
 	f, err := os.Stat(input)
@@ -33,7 +40,7 @@ func generateDocs(input, output string, verbose bool) error {
 
 // generateDocsFromDirectory processes the directory and its subdirectories recursively.
 //
-// For each main.bicep file, it creates/updates a README.md file in the same directory.
+// For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
 func generateDocsFromDirectory(dirPath string, verbose bool) error {
 	// Maximal number of goroutines
 	const n = 10

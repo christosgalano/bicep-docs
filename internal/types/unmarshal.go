@@ -162,7 +162,7 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 	}
 
 	// Sort Parameters, UserDefinedDataTypes, Variables,
-	// Outputs, and UserDefinedFunctions by name
+	// Outputs, and UserDefinedFunctions by name.
 	t.Sort()
 
 	return nil

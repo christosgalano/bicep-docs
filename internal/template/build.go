@@ -12,11 +12,9 @@ import (
 	"github.com/google/uuid"
 )
 
-// BuildBicepTemplate builds a Bicep template into an ARM template and stores it in the OS temp directory.
-//
-// The path to the newly created ARM template is returned.
-//
-// Bicep or Azure CLI must be installed (https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
+// BuildBicepTemplate compiles a Bicep file into an ARM template, stored in the temporary directory.
+// It checks for the 'bicep' or 'az' commands to perform the build.
+// The function returns the path to the generated ARM template file, or an error if the build fails or the necessary commands are not found.
 func BuildBicepTemplate(bicepFile string) (string, error) {
 	// Validate file extension
 	basename := filepath.Base(bicepFile)
@@ -53,13 +51,15 @@ func BuildBicepTemplate(bicepFile string) (string, error) {
 	return armFile, nil
 }
 
-// commandExists checks if a command exists.
+// commandExists checks if a command exists in the system's PATH.
+// It returns true if the command exists, otherwise false.
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
-// runCommand runs a command and returns an error if it fails.
+// runCommand executes the given command and returns an error if the command fails.
+// It captures the error message from stderr and returns it as an error.
 func runCommand(cmd *exec.Cmd) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
