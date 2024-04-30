@@ -27,8 +27,9 @@ var (
 	multilineDescriptionStartRegex = regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
 )
 
-// ParseTemplates parses a Bicep and its corresponding ARM template.
-// It returns a Template struct that contains the information about the Bicep template.
+// ParseTemplates parses the Bicep and ARM templates and returns a populated types.Template struct.
+// It takes the paths to the Bicep file and ARM file as input parameters.
+// The function returns a pointer to the types.Template struct and an error, if any.
 func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	var err error
 	var template types.Template
@@ -60,7 +61,8 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 	return &template, nil
 }
 
-// parseArmTemplate decodes an ARM template into a Template struct.
+// parseArmTemplate parses the specified ARM template file and populates the provided template struct.
+// It opens the JSON file, decodes the ARM template into the template struct, and returns any errors encountered.
 func parseArmTemplate(armFile string, template *types.Template) error {
 	// Open JSON file
 	file, err := os.Open(armFile)
@@ -79,7 +81,8 @@ func parseArmTemplate(armFile string, template *types.Template) error {
 	return nil
 }
 
-// parseBicepTemplate extracts information about any existing modules, resources and variables from a Bicep template.
+// parseBicepTemplate parses a Bicep template file and extracts the modules, resources, and variables defined in the file.
+// It returns the parsed modules, resources, variables, and any error encountered during parsing.
 func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, []types.Variable, error) {
 	file, err := os.Open(bicepFile)
 	if err != nil {
@@ -169,7 +172,9 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, []t
 	return modules, resources, variables, err
 }
 
-// parseDescription extracts the description of a module or resource from a line.
+// parseDescription parses a line of text and returns a pointer to the description.
+// It supports both inline and multiline descriptions.
+// If the line does not match the regex pattern, it returns nil.
 func parseDescription(line string, scanner *bufio.Scanner) *string {
 	// Parse inline description
 	matches := inlineDescriptionRegex.FindStringSubmatch(line)
@@ -206,7 +211,8 @@ func parseDescription(line string, scanner *bufio.Scanner) *string {
 	return nil
 }
 
-// parseModule extracts information about a module from a line.
+// parseModule parses a line of text and returns a pointer to a types.Module struct.
+// If the line does not match the regex pattern, it returns nil.
 func parseModule(line string) *types.Module {
 	matches := moduleRegex.FindStringSubmatch(line)
 	if matches != nil {
@@ -219,7 +225,8 @@ func parseModule(line string) *types.Module {
 	return nil
 }
 
-// parseResource extracts information about a resource from a line.
+// parseResource parses a line of text and returns a pointer to a types.Resource struct.
+// If the line does not match the regex pattern, it returns nil.
 func parseResource(line string) *types.Resource {
 	matches := resourceRegex.FindStringSubmatch(line)
 	if matches != nil {
@@ -233,7 +240,8 @@ func parseResource(line string) *types.Resource {
 	return nil
 }
 
-// parseVariable extracts information about a variable from a line.
+// parseVariable parses a line of text and returns a pointer to a types.Variable struct.
+// If the line does not match the regex pattern, it returns nil.
 func parseVariable(line string) *types.Variable {
 	matches := variableRegex.FindStringSubmatch(line)
 	if matches != nil {
@@ -244,8 +252,10 @@ func parseVariable(line string) *types.Variable {
 	return nil
 }
 
-// skipComment skips single line and multiline comments.
-// It returns true if a comment was skipped, false otherwise.
+// skipComment checks if the given line is a comment and skips it.
+// It supports both single-line and multi-line comments.
+// If the comment is multi-line, it continues scanning until the closing "*/" is found.
+// If the comment is not properly closed, it returns an error.
 func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 	// Skip single line comments
 	if strings.HasPrefix(strings.TrimSpace(line), "//") {
@@ -272,9 +282,8 @@ func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 	return false, nil
 }
 
-// ignoreDescription returns true if the provided line defines a type, output, variable, or parameter.
-// That is, if the line starts with "type", "output", "var", or "param".
-// Then, the description of the type, output, variable, or parameter should be ignored.
+// ignoreDescription checks if a given line should be ignored based on certain patterns.
+// It returns true if the line matches any of the type, output, variable or parameter patterns; otherwise, it returns false.
 func ignoreDescription(line string) bool {
 	matchType := typeRegex.FindStringSubmatch(line)
 	matchOutput := outputRegex.FindStringSubmatch(line)

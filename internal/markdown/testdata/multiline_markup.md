@@ -1,5 +1,23 @@
 # test.bicep
 
+## Usage
+
+Here is a basic example of how to use this Bicep module:
+
+```bicep
+module reference_name 'path_to_module | container_registry_reference' = {
+  name: 'deployment_name'
+  params: {
+    // Required parameters
+    storageAccountName:
+
+    // Optional parameters
+  }
+}
+```
+
+> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.
+
 ## Parameters
 
 | Name | Type | Description | Default |

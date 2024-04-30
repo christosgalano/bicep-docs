@@ -98,6 +98,10 @@ The documentation has the following format:
 
 ...
 
+## Usage
+
+...
+
 ## Modules
 
 table of modules
@@ -128,33 +132,83 @@ table of outputs
 
 ```
 
-**NOTE:** The **Description** column of **variables** is left intentionally blank, as it is not currently possible to have metadata for variables.
-
 <!-- markdownlint-disable -->
 <details>
   <summary>Example documentation file:</summary>
 
-# storage account
-
+# module-name
 
 ## Description
 
-Create a storage account.
+Module description
+
+## Usage
+
+Here is a basic example of how to use this Bicep module:
+
+```bicep
+module reference_name 'path_to_module | container_registry_reference' = {
+  name: 'deployment_name'
+  params: {
+    // Required parameters
+    location:
+    required_array:
+    required_bool:
+    required_int:
+    required_object:
+    required_string:
+
+    // Optional parameters
+    optional_array: [
+      'value1'
+      '[__bicep.double(2)]'
+      true
+      {
+        key1: 'test'
+        key2: 42
+        key3: true
+      }
+    ]
+    optional_bool: true
+    optional_int: 42
+    optional_object: {
+      key1: 'value1'
+      key2: '[__bicep.double(2)]'
+      key3: true
+      key4: [
+        'a'
+        'b'
+        'c'
+      ]
+    }
+    optional_string: 'default'
+  }
+}
+```
+
+> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.
 
 ## Resources
 
 | Symbolic Name | Type | Description |
 | --- | --- | --- |
-| st | [Microsoft.Storage/storageAccounts](https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts) | This is a test resource. |
+| identity | [Microsoft.ManagedIdentity/userAssignedIdentities](https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities) |  |
 
 ## Parameters
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| kind | string | The kind of storage account. | StorageV2 |
-| location | string | Location to deploy the storage account. | [resourceGroup().location] |
-| name | string | Name of the storage account. |  |
-| skuName | string | Name of the storage account's sku. | Standard_LRS |
+| location | string | Resource group location. |  |
+| optional_array | array | Optional array parameter. | ["value1", "[__bicep.double(2)]", true, {"key1": "test", "key2": 42, "key3": true}] |
+| optional_bool | bool | Optional boolean parameter. | true |
+| optional_int | int | Optional integer parameter. | 42 |
+| optional_object | object | Optional object parameter. | {"key1": "value1", "key2": "[__bicep.double(2)]", "key3": true, "key4": ["a", "b", "c"]} |
+| optional_string | string | Optional string parameter. | "default" |
+| required_array | array | Required array parameter. |  |
+| required_bool | bool | Required boolean parameter. |  |
+| required_int | int | Required integer parameter. |  |
+| required_object | object | Required object parameter. |  |
+| required_string | string | Required string parameter. |  |
 
 ## User Defined Data Types (UDDTs)
 
@@ -172,14 +226,15 @@ Create a storage account.
 
 | Name | Description |
 | --- | --- |
-| test_number | |
+| doubleValue | Doubles the required integer. |
 
 ## Outputs
 
 | Name | Type | Description |
 | --- | --- | --- |
-| doubled | positiveInt (uddt) | Double test_number. |
-| resourceId | string | Resource ID of the storage account. |
+| clientId | string | Client ID of the identity. |
+| principalId | string | Principal ID of the identity. |
+| resourceId | string | Resource ID of the identity. |
 
 </details>
 <!-- markdownlint-enable -->

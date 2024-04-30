@@ -4,7 +4,6 @@ Package markdown provides functionality to create a Markdown file from a Bicep t
 package markdown
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -12,10 +11,12 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// CreateFile creates or overwrites a Markdown file with the information from a Bicep template.
-//
-// If verbose is true, it prints a message to stdout.
-func CreateFile(filename string, template *types.Template, verbose bool) error {
+// CreateFile creates or updates a file with the specified filename using the provided template.
+// If the file already exists and its content matches the generated Markdown string, no changes are made.
+// If the file does not exist or its content differs from the generated Markdown string, the file is created or updated accordingly.
+// The verbose parameter controls whether informational messages are printed to stdout.
+// It returns an error if any operation fails.
+func CreateFile(filename string, template *types.Template, verbose bool) error { //nolint:gocyclo // This function is complex by design.
 	// Check if template is nil
 	if template == nil {
 		return fmt.Errorf("invalid template (nil)")
@@ -37,7 +38,10 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	}
 
 	// Build Markdown string
-	markdownString := buildMarkdownString(template)
+	markdownString, err := buildMarkdownString(template)
+	if err != nil {
+		return fmt.Errorf("failed to build Markdown string: %w", err)
+	}
 
 	// Check if file needs to be updated
 	if fileExists && fileContent == markdownString {
@@ -72,82 +76,12 @@ func CreateFile(filename string, template *types.Template, verbose bool) error {
 	return nil
 }
 
-// checkFileExists checks if a file exists and is not a directory.
-func checkFileExists(filename string) (bool, error) {
-	f, err := os.Stat(filename)
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("failed to stat file %q: %w", filename, err)
-	}
-	if f.IsDir() {
-		return false, fmt.Errorf("output %q is a directory", filename)
-	}
-	return true, nil
-}
-
-// readFileContent reads the content of a file.
-func readFileContent(filename string) (string, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file %q: %w", filename, err)
-	}
-	return string(bytes), nil
-}
-
-// buildMarkdownString builds the Markdown string from a Bicep template.
-func buildMarkdownString(template *types.Template) string {
+// buildMarkdownString takes a pointer to a Template and builds a markdown string
+// representation of the template. It returns the markdown string and an error, if any.
+func buildMarkdownString(template *types.Template) (string, error) {
 	var builder strings.Builder
-	builder.WriteString(templateMetadataToMarkdown(template))
-	if len(template.Modules) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(modulesToMarkdown(template))
-	}
-	if len(template.Resources) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(resourcesToMarkdown(template))
-	}
-	if len(template.Parameters) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(parametersToMarkdown(template))
-	}
-	if len(template.UserDefinedDataTypes) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(userDefinedDataTypesToMarkdown(template))
-	}
-	if len(template.UserDefinedFunctions) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(userDefinedFunctionsToMarkdown(template))
-	}
-	if len(template.Variables) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(variablesToMarkdown(template))
-	}
-	if len(template.Outputs) > 0 {
-		builder.WriteString("\n")
-		builder.WriteString(outputsToMarkdown(template))
-	}
-	return builder.String()
-}
 
-// generateTableHeaders generates the Markdown table headers.
-func generateTableHeaders(headers []string) string {
-	var builder strings.Builder
-	for _, header := range headers {
-		builder.WriteString(fmt.Sprintf("| %s ", header))
-	}
-	builder.WriteString("|\n")
-	for i := 0; i < len(headers); i++ {
-		builder.WriteString("| --- ")
-	}
-	builder.WriteString("|\n")
-	return builder.String()
-}
-
-// templateMetadataToMarkdown converts the metadata part of a template to Markdown.
-func templateMetadataToMarkdown(template *types.Template) string {
-	var builder strings.Builder
+	// Template metadata
 	var title *string
 	if template.Metadata == nil || template.Metadata.Name == nil || *template.Metadata.Name == "" {
 		title = &template.FileName
@@ -155,192 +89,37 @@ func templateMetadataToMarkdown(template *types.Template) string {
 		title = template.Metadata.Name
 	}
 	builder.WriteString(fmt.Sprintf("# %s\n", *title))
-
-	// Add description if it exists
 	if template.Metadata != nil && template.Metadata.Description != nil && *template.Metadata.Description != "" {
 		builder.WriteString(fmt.Sprintf("\n## Description\n\n%s\n", *template.Metadata.Description))
 	}
+	builder.WriteString("\n")
 
-	return builder.String()
-}
-
-// modulesToMarkdown converts the modules a template to Markdown.
-func modulesToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	moduleHeaders := []string{"Symbolic Name", "Source", "Description"}
-	if len(template.Modules) > 0 {
-		builder.WriteString("## Modules\n\n")
-		builder.WriteString(generateTableHeaders(moduleHeaders))
-		for _, module := range template.Modules {
-			description := strings.ReplaceAll(module.Description, "\r\n", "\n")
-			description = strings.ReplaceAll(description, "\n", "<br>")
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s | %s |\n",
-					module.SymbolicName,
-					module.Source,
-					description,
-				),
-			)
-		}
+	// Create a slice of functions that each return a markdown table string and an error.
+	markdownFunctions := []func(*types.Template) (string, error){
+		generateUsageSection,
+		modulesToMarkdownTable,
+		resourcesToMarkdownTable,
+		parametersToMarkdownTable,
+		userDefinedDataTypesToMarkdownTable,
+		userDefinedFunctionsToMarkdownTable,
+		variablesToMarkdownTable,
+		outputsToMarkdownTable,
 	}
-	return builder.String()
-}
 
-// resourcesToMarkdown converts the resources a template to Markdown.
-func resourcesToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	resourceHeaders := []string{"Symbolic Name", "Type", "Description"}
-	if len(template.Resources) > 0 {
-		builder.WriteString("## Resources\n\n")
-		builder.WriteString(generateTableHeaders(resourceHeaders))
-		for _, resource := range template.Resources {
-			typeLink := fmt.Sprintf("[%s](https://learn.microsoft.com/en-us/azure/templates/%s)", resource.Type, strings.ToLower(resource.Type))
-			description := strings.ReplaceAll(resource.Description, "\r\n", "\n")
-			description = strings.ReplaceAll(description, "\n", "<br>")
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s | %s |\n",
-					resource.SymbolicName,
-					typeLink,
-					description,
-				),
-			)
-		}
-	}
-	return builder.String()
-}
-
-// parametersToMarkdown converts the parameters a template to Markdown.
-func parametersToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	parameterHeaders := []string{"Name", "Type", "Description", "Default"}
-	if len(template.Parameters) > 0 {
-		builder.WriteString("## Parameters\n\n")
-		builder.WriteString(generateTableHeaders(parameterHeaders))
-		for _, parameter := range template.Parameters {
-			defaultValue := ""
-			if parameter.DefaultValue != nil {
-				if dv, ok := parameter.DefaultValue.(map[string]any); ok {
-					if len(dv) == 0 {
-						defaultValue = "{}"
-					} else {
-						defaultValue = "{"
-						i := 0
-						for k, v := range dv {
-							if i == len(dv)-1 {
-								defaultValue += fmt.Sprintf("%s: %v}", k, v)
-								break
-							}
-							defaultValue += fmt.Sprintf("%s: %v, ", k, v)
-							i++
-						}
-					}
-				} else {
-					defaultValue = fmt.Sprintf("%v", parameter.DefaultValue)
-				}
+	// Iterate over the slice and call each function in turn.
+	for _, function := range markdownFunctions {
+		if md, err := function(template); err == nil {
+			builder.WriteString(md)
+			if md != "" {
+				builder.WriteString("\n")
 			}
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s | %s | %s |\n",
-					parameter.Name,
-					extractType(parameter.Type),
-					extractDescription(parameter.Metadata),
-					defaultValue,
-				),
-			)
+		} else {
+			return "", err
 		}
 	}
-	return builder.String()
-}
 
-// outputsToMarkdown converts the outputs a template to Markdown.
-func outputsToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	outputHeaders := []string{"Name", "Type", "Description"}
-	if len(template.Outputs) > 0 {
-		builder.WriteString("## Outputs\n\n")
-		builder.WriteString(generateTableHeaders(outputHeaders))
-		for _, output := range template.Outputs {
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s | %s |\n",
-					output.Name,
-					extractType(output.Type),
-					extractDescription(output.Metadata),
-				),
-			)
-		}
-	}
-	return builder.String()
-}
+	// Trim trailing newlines and add a single newline at the end.
+	result := strings.TrimRight(builder.String(), "\n") + "\n"
 
-// userDefinedDataTypesToMarkdown converts the user defined data types a template to Markdown.
-func userDefinedDataTypesToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	userDefinedDataTypeHeaders := []string{"Name", "Type", "Description"}
-	if len(template.UserDefinedDataTypes) > 0 {
-		builder.WriteString("## User Defined Data Types (UDDTs)\n\n")
-		builder.WriteString(generateTableHeaders(userDefinedDataTypeHeaders))
-		for _, userDefinedDataType := range template.UserDefinedDataTypes {
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s | %s |\n",
-					userDefinedDataType.Name,
-					extractType(userDefinedDataType.Type),
-					extractDescription(userDefinedDataType.Metadata),
-				),
-			)
-		}
-	}
-	return builder.String()
-}
-
-// userDefinedFunctionsToMarkdown converts the user defined functions a template to Markdown.
-func userDefinedFunctionsToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	userDefinedFunctionHeaders := []string{"Name", "Description"}
-	if len(template.UserDefinedFunctions) > 0 {
-		builder.WriteString("## User Defined Functions (UDFs)\n\n")
-		builder.WriteString(generateTableHeaders(userDefinedFunctionHeaders))
-		for _, userDefinedFunction := range template.UserDefinedFunctions {
-			builder.WriteString(
-				fmt.Sprintf("| %s | %s |\n",
-					userDefinedFunction.Name,
-					extractDescription(userDefinedFunction.Metadata),
-				),
-			)
-		}
-	}
-	return builder.String()
-}
-
-// variablesToMarkdown converts the variables a template to Markdown.
-// The description column is left empty because it is not currently supported in Bicep.
-func variablesToMarkdown(template *types.Template) string {
-	var builder strings.Builder
-	variableHeaders := []string{"Name", "Description"}
-	if len(template.Variables) > 0 {
-		builder.WriteString("## Variables\n\n")
-		builder.WriteString(generateTableHeaders(variableHeaders))
-		for _, variable := range template.Variables {
-			builder.WriteString(fmt.Sprintf("| %s | %s |\n", variable.Name, variable.Description))
-		}
-	}
-	return builder.String()
-}
-
-// extractType extracts the type from a type string.
-// If the type is a user defined data type, it returns the name of it.
-func extractType(t string) string {
-	if strings.HasPrefix(t, "#/definitions/") {
-		split := strings.Split(t, "/")
-		return split[len(split)-1] + " (uddt)"
-	}
-	return t
-}
-
-// extractDescription extracts the description from an entity's metadata.
-func extractDescription(metadata *types.Metadata) string {
-	description := ""
-	if metadata != nil && metadata.Description != nil {
-		description = strings.ReplaceAll(*metadata.Description, "\r\n", "<br>")
-		description = strings.ReplaceAll(description, "\n", "<br>")
-	}
-	return description
+	return result, nil
 }
