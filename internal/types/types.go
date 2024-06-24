@@ -5,6 +5,10 @@ It also provides custom UnmarshalJSON and Sort functions for some of those types
 */
 package types
 
+import (
+	"strings"
+)
+
 // Metadata is a struct that contains the metadata part of a parameter, an output, or the template itself.
 // The metadata part consists of two optional fields: name and description.
 //
@@ -123,4 +127,50 @@ type Template struct {
 	Variables            []Variable            `json:"-"`
 	Outputs              []Output              `json:"-"`
 	Metadata             *Metadata             `json:"metadata"`
+}
+
+// Section is an enum that represents the different sections of the generated Markdown file.
+type Section string
+
+const (
+	DescriptionSection          Section = "description"
+	UsageSection                Section = "usage"
+	ModulesSection              Section = "modules"
+	ResourcesSection            Section = "resources"
+	ParametersSection           Section = "parameters"
+	UserDefinedDataTypesSection Section = "uddts"
+	UserDefinedFunctionsSection Section = "udfs"
+	VariablesSection            Section = "variables"
+	OutputsSection              Section = "outputs"
+)
+
+// ParseSectionFromString converts a string to its corresponding Section enum value.
+func ParseSectionFromString(str string) (Section, bool) {
+	switch strings.ToLower(str) {
+	case "description":
+		return DescriptionSection, true
+	case "usage":
+		return UsageSection, true
+	case "modules":
+		return ModulesSection, true
+	case "resources":
+		return ResourcesSection, true
+	case "parameters":
+		return ParametersSection, true
+	case "uddts":
+		return UserDefinedDataTypesSection, true
+	case "udfs":
+		return UserDefinedFunctionsSection, true
+	case "variables":
+		return VariablesSection, true
+	case "outputs":
+		return OutputsSection, true
+	default:
+		return "", false
+	}
+}
+
+// String returns the string representation of a Section.
+func (s Section) String() string {
+	return string(s)
 }

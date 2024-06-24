@@ -21,9 +21,10 @@ import (
 //
 // The output is used only when the input is a Bicep file; in other cases it is always set to 'README.md'.
 //
+// The sections slice contains the sections that should be included in the documentation.
+//
 // If verbose is true, additional information will be printed during the generation process.
-func generateDocs(input, output string, verbose bool) error {
-	// Non-existing file or directory
+func generateDocs(input, output string, verbose bool, sections []types.Section) error {
 	f, err := os.Stat(input)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -33,21 +34,18 @@ func generateDocs(input, output string, verbose bool) error {
 	}
 
 	if f.IsDir() {
-		return generateDocsFromDirectory(input, verbose)
+		return generateDocsFromDirectory(input, verbose, sections)
 	}
-	return generateDocsFromBicepFile(input, output, verbose)
+	return generateDocsFromBicepFile(input, output, verbose, sections)
 }
 
 // generateDocsFromDirectory processes the directory and its subdirectories recursively.
 //
 // For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
-func generateDocsFromDirectory(dirPath string, verbose bool) error {
-	// Maximal number of goroutines
-	const n = 10
-
-	// Create a new errgroup with a limit of n goroutines
+func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section) error {
+	const maxGoRoutines = 10
 	g := new(errgroup.Group)
-	g.SetLimit(n)
+	g.SetLimit(maxGoRoutines)
 
 	// Traverse the directory and process each main.bicep file
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
@@ -58,13 +56,11 @@ func generateDocsFromDirectory(dirPath string, verbose bool) error {
 			// Create a README.md file in the same directory as the main.bicep file
 			markdownFile := filepath.Join(filepath.Dir(path), "README.md")
 			g.Go(func() error {
-				return generateDocsFromBicepFile(path, markdownFile, verbose)
+				return generateDocsFromBicepFile(path, markdownFile, verbose, sections)
 			})
 		}
 		return nil
 	})
-
-	// WalkDir error
 	if err != nil {
 		return err
 	}
@@ -83,10 +79,10 @@ func generateDocsFromDirectory(dirPath string, verbose bool) error {
 // user defined functions, variables, outputs, and metadata.
 //
 // Finally it creates a corresponding Markdown file based on the gathered information
-// and deletes the ARM template.
+// and the provided section, while also deleting the ARM template.
 //
 // If the Markdown file already exists, it will be overwritten.
-func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) error {
+func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool, sections []types.Section) error {
 	// Build Bicep template into ARM template
 	armFile, err := template.BuildBicepTemplate(bicepFile)
 	if err != nil {
@@ -102,7 +98,7 @@ func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool) err
 	}
 
 	// Create/Update Markdown file
-	if err := markdown.CreateFile(markdownFile, tmpl, verbose); err != nil {
+	if err := markdown.CreateFile(markdownFile, tmpl, verbose, sections); err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 
