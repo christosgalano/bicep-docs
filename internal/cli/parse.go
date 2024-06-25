@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/christosgalano/bicep-docs/internal/types"
@@ -11,9 +10,9 @@ import (
 func convertStringsToSections(sections []string) ([]types.Section, error) {
 	var convertedSections []types.Section
 	for _, section := range sections {
-		s, ok := types.ParseSectionFromString(section)
-		if !ok {
-			return nil, errors.New("invalid section: \"" + section + "\"")
+		s, err := types.ParseSectionFromString(section)
+		if err != nil {
+			return nil, err
 		}
 		convertedSections = append(convertedSections, s)
 	}

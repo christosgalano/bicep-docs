@@ -48,9 +48,9 @@ tasks:
   test:
     desc: Run all tests for all packages
     cmds:
+      - printf "---------- template ----------------------\n\n" && task test:template && printf "\n\n"
+      - printf "---------- markdown ----------------------\n\n" && task test:markdown && printf "\n\n"
       - printf "---------- cli ---------------------------\n\n" && task test:cli && printf "\n\n"
-      - printf "---------- markdown ---------------------------------\n\n" && task test:markdown && printf "\n\n"
-      - printf "---------- template ---------------------------\n\n" && task test:template && printf "\n\n"
     silent: true
 
   test:cli:

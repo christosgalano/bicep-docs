@@ -6,6 +6,7 @@ It also provides custom UnmarshalJSON and Sort functions for some of those types
 package types
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -145,28 +146,28 @@ const (
 )
 
 // ParseSectionFromString converts a string to its corresponding Section enum value.
-func ParseSectionFromString(str string) (Section, bool) {
+func ParseSectionFromString(str string) (Section, error) {
 	switch strings.ToLower(str) {
 	case "description":
-		return DescriptionSection, true
+		return DescriptionSection, nil
 	case "usage":
-		return UsageSection, true
+		return UsageSection, nil
 	case "modules":
-		return ModulesSection, true
+		return ModulesSection, nil
 	case "resources":
-		return ResourcesSection, true
+		return ResourcesSection, nil
 	case "parameters":
-		return ParametersSection, true
+		return ParametersSection, nil
 	case "uddts":
-		return UserDefinedDataTypesSection, true
+		return UserDefinedDataTypesSection, nil
 	case "udfs":
-		return UserDefinedFunctionsSection, true
+		return UserDefinedFunctionsSection, nil
 	case "variables":
-		return VariablesSection, true
+		return VariablesSection, nil
 	case "outputs":
-		return OutputsSection, true
+		return OutputsSection, nil
 	default:
-		return "", false
+		return "", errors.New("invalid section: \"" + str + "\"")
 	}
 }
 
