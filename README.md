@@ -65,6 +65,18 @@ The default value for the output is `README.md`, relative to the directory where
 
 **CAUTION:** If the Markdown file already exists, it will be **overwritten**.
 
+### Arguments
+
+Regarding the arguments `--include-sections` and `--exclude-sections`, the available sections are: `description`, `usage`, `modules`, `resources`, `parameters`, `udfs`, `uddts`, `variables`, `outputs`.
+
+The default sections ordered are `description,usage,modules,resources,parameters,udfs,uddts,variables,outputs`. The default input for`--exclude-sections` is `''`.  This ensures backward compatibility with the previous version.
+
+The order of the sections is respected when including them.
+
+When excluding sections, the result will be the default sections minus the excluded ones (e.g. `--exclude-sections description,usage` will include `modules,resources,parameters,udfs,uddts,variables,outputs` in that order).
+
+Both arguments cannot be provided at the same time, unless the `--include-sections` argument is the same as the default sections (e.g. `--include-sections description,usage,modules,resources,parameters,udfs,uddts,variables,outputs`).
+
 ### Example usage
 
 Parse a Bicep file and generate a Markdown file:
@@ -83,6 +95,18 @@ Parse a directory and generate a README.md file for each main.bicep file with ve
 
 ```bash
 bicep-docs -i ./bicep -V
+```
+
+Parse a Bicep file and generate a README.md excluding the user-defined sections:
+
+```bash
+bicep-docs --input main.bicep --exclude-sections udfs,uddts
+```
+
+Parse a Bicep file and generate a README.md including only the resources and modules in that order:
+
+```bash
+bicep-docs ---input main.bicep --include-sections resources,modules
 ```
 
 More examples can be found [here](examples).

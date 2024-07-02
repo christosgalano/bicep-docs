@@ -10,6 +10,20 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
+var (
+	defaultSections = []types.Section{
+		types.DescriptionSection,
+		types.UsageSection,
+		types.ModulesSection,
+		types.ResourcesSection,
+		types.ParametersSection,
+		types.UserDefinedDataTypesSection,
+		types.UserDefinedFunctionsSection,
+		types.VariablesSection,
+		types.OutputsSection,
+	}
+)
+
 func TestCreateFile(t *testing.T) {
 	templateName := "test"
 	templateDescription := "This is a test template."
@@ -275,7 +289,7 @@ func TestCreateFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Call CreateFile with the filename in the temporary directory
 			filename := filepath.Join(tempDir, tt.args.filename)
-			if err := CreateFile(filename, tt.args.template, false); (err != nil) != tt.wantErr {
+			if err := CreateFile(filename, tt.args.template, false, defaultSections); (err != nil) != tt.wantErr {
 				t.Errorf("CreateFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

@@ -10,3 +10,11 @@ repos:
     rev: v0.38.0
     hooks:
       - id: markdownlint
+  - repo: local
+    hooks:
+      - id: golint
+        name: golint
+        entry: task lint
+        language: golang
+        pass_filenames: false
+        types: [go]
