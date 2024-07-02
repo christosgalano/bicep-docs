@@ -14,7 +14,7 @@ output:
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   #
   # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
-  format: colored-line-number
+  formats: 'colored-line-number'
   print-issued-lines: false
   print-linter-name: true
   uniq-by-line: true
@@ -186,7 +186,7 @@ linters:
     - errorlint
     - exportloopref
     - gocheckcompilerdirectives
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosimple
     - ineffassign
