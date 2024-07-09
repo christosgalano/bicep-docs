@@ -16,13 +16,13 @@ func TestConvertStringsToSections(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name:           "valid sections",
+			name:           "valid_sections",
 			sections:       []string{"description", "usage", "modules"},
 			expectedResult: []types.Section{types.DescriptionSection, types.UsageSection, types.ModulesSection},
 			expectedError:  nil,
 		},
 		{
-			name:           "invalid section",
+			name:           "invalid_section",
 			sections:       []string{"description", "invalid", "modules"},
 			expectedResult: nil,
 			expectedError:  errors.New("invalid section: \"invalid\""),
@@ -52,14 +52,14 @@ func TestComputeSectionDifference(t *testing.T) {
 		expectedError   error
 	}{
 		{
-			name:            "included sections only",
+			name:            "included_sections_only",
 			includeSections: "description,usage,modules",
 			excludeSections: "",
 			expectedResult:  []types.Section{types.DescriptionSection, types.UsageSection, types.ModulesSection},
 			expectedError:   nil,
 		},
 		{
-			name:            "excluded sections only",
+			name:            "excluded_sections_only",
 			includeSections: defaultSections,
 			excludeSections: "description,usage,modules",
 			expectedResult: []types.Section{
@@ -73,7 +73,7 @@ func TestComputeSectionDifference(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:            "invalid section",
+			name:            "invalid_section",
 			includeSections: "description,invalid,modules",
 			excludeSections: "",
 			expectedResult:  nil,

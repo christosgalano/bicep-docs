@@ -17,7 +17,7 @@ func TestGenerateDocs(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "directory input",
+			name:     "directory_input",
 			input:    "./testdata",
 			output:   "",
 			verbose:  true,
@@ -25,7 +25,7 @@ func TestGenerateDocs(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "Bicep file input",
+			name:     "file_input",
 			input:    "./testdata/main.bicep",
 			output:   "README.md",
 			verbose:  false,
@@ -33,7 +33,7 @@ func TestGenerateDocs(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "non-existent input",
+			name:     "non_existent_input",
 			input:    "./path/to/non-existent",
 			output:   "",
 			verbose:  true,
@@ -67,7 +67,7 @@ func TestGenerateDocsFromDirectory(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "valid directory",
+			name:     "valid_directory",
 			dirPath:  "./testdata",
 			verbose:  true,
 			sections: []types.Section{types.DescriptionSection, types.UsageSection},
@@ -101,7 +101,7 @@ func TestGenerateDocsFromBicepFile(t *testing.T) {
 		expected     string
 	}{
 		{
-			name:         "valid Bicep file",
+			name:         "valid_file",
 			bicepFile:    "./testdata/main.bicep",
 			markdownFile: "./testdata/README.md",
 			verbose:      true,
