@@ -98,9 +98,9 @@ func init() {
 		"include-sections",
 		"I",
 		defaultSections,
-		"comma-separated list of sections to include in the output, order matters; "+
-			"available sections: description, usage, modules, resources, parameters, uddts, "+
-			"udfs, variables, outputs",
+		"comma-separated list of sections to include in the output, order matters",
+		// "available sections: description, usage, modules, resources, parameters, uddts, "+
+		// "udfs, variables, outputs",
 	)
 
 	// exclude-sections - optional
