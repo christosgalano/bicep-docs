@@ -8,7 +8,7 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-func TestConvertStringsToSections(t *testing.T) {
+func Test_convertStringsToSections(t *testing.T) {
 	tests := []struct {
 		name           string
 		sections       []string
@@ -43,7 +43,7 @@ func TestConvertStringsToSections(t *testing.T) {
 	}
 }
 
-func TestComputeSectionDifference(t *testing.T) {
+func Test_computeSectionDifference(t *testing.T) {
 	tests := []struct {
 		name            string
 		includeSections string

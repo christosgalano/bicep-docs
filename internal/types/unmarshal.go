@@ -1,18 +1,36 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+func unmarshalTypeOrRef(data []byte) (string, error) {
+	var result struct {
+		Type string `json:"type"`
+		Ref  string `json:"$ref"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		return "", err
+	}
+	if result.Type != "" {
+		return result.Type, nil
+	}
+	if result.Ref != "" {
+		return result.Ref, nil
+	}
+	return "", fmt.Errorf("neither type nor $ref field found")
+}
 
 // UnmarshalJSON unmarshals a JSON object into a Parameter.
 // The type field can be either a type or a $ref.
 func (p *Parameter) UnmarshalJSON(data []byte) error {
 	type Alias Parameter
 	aux := &struct {
-		Type json.RawMessage `json:"type"`
-		Ref  json.RawMessage `json:"$ref"`
 		*Alias
 	}{
 		Alias: (*Alias)(p),
@@ -21,19 +39,13 @@ func (p *Parameter) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var ref string
-	if err := json.Unmarshal(aux.Ref, &ref); err == nil {
-		p.Type = ref
-		return nil
+	tr, err := unmarshalTypeOrRef(data)
+	if err != nil {
+		return err
 	}
+	p.Type = tr
 
-	var typ string
-	if err := json.Unmarshal(aux.Type, &typ); err == nil {
-		p.Type = typ
-		return nil
-	}
-
-	return fmt.Errorf("type field could not be unmarshalled")
+	return nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into an Output.
@@ -41,8 +53,6 @@ func (p *Parameter) UnmarshalJSON(data []byte) error {
 func (o *Output) UnmarshalJSON(data []byte) error {
 	type Alias Output
 	aux := &struct {
-		Type json.RawMessage `json:"type"`
-		Ref  json.RawMessage `json:"$ref"`
 		*Alias
 	}{
 		Alias: (*Alias)(o),
@@ -51,19 +61,13 @@ func (o *Output) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var ref string
-	if err := json.Unmarshal(aux.Ref, &ref); err == nil {
-		o.Type = ref
-		return nil
+	tr, err := unmarshalTypeOrRef(data)
+	if err != nil {
+		return err
 	}
+	o.Type = tr
 
-	var typ string
-	if err := json.Unmarshal(aux.Type, &typ); err == nil {
-		o.Type = typ
-		return nil
-	}
-
-	return fmt.Errorf("type field could not be unmarshalled")
+	return nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into a UserDefinedDataType.
@@ -71,8 +75,6 @@ func (o *Output) UnmarshalJSON(data []byte) error {
 func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 	type Alias UserDefinedDataType
 	aux := &struct {
-		Type json.RawMessage `json:"type"`
-		Ref  json.RawMessage `json:"$ref"`
 		*Alias
 	}{
 		Alias: (*Alias)(u),
@@ -81,19 +83,13 @@ func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var ref string
-	if err := json.Unmarshal(aux.Ref, &ref); err == nil {
-		u.Type = ref
-		return nil
+	tr, err := unmarshalTypeOrRef(data)
+	if err != nil {
+		return err
 	}
+	u.Type = tr
 
-	var typ string
-	if err := json.Unmarshal(aux.Type, &typ); err == nil {
-		u.Type = typ
-		return nil
-	}
-
-	return fmt.Errorf("type field could not be unmarshalled")
+	return nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into a Template.

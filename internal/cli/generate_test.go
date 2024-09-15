@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -21,7 +24,7 @@ func TestGenerateDocs(t *testing.T) {
 			input:    "./testdata",
 			output:   "",
 			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.UsageSection},
+			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
 			expected: "",
 		},
 		{
@@ -37,7 +40,7 @@ func TestGenerateDocs(t *testing.T) {
 			input:    "./path/to/non-existent",
 			output:   "",
 			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.UsageSection},
+			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
 			expected: "no such file or directory \"./path/to/non-existent\"",
 		},
 	}
@@ -70,7 +73,7 @@ func Test_generateDocsFromDirectory(t *testing.T) {
 			name:     "valid_directory",
 			dirPath:  "./testdata",
 			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.UsageSection},
+			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
 			expected: "",
 		},
 	}
@@ -121,6 +124,64 @@ func Test_generateDocsFromBicepFile(t *testing.T) {
 				}
 			} else if err != nil {
 				t.Errorf("generateDocsFromBicepFile() unexpected error = %v", err)
+			}
+		})
+	}
+}
+
+// createTestDirectory creates a temporary directory with the specified number of main.bicep files.
+func createTestDirectory(numFiles int) (string, error) {
+	tempDir, err := os.MkdirTemp("", "bicep-docs-benchmark")
+	if err != nil {
+		return "", err
+	}
+
+	for i := 0; i < numFiles; i++ {
+		dirPath := filepath.Join(tempDir, fmt.Sprintf("dir_%d", i))
+		err := os.MkdirAll(dirPath, 0o755)
+		if err != nil {
+			os.RemoveAll(tempDir)
+			return "", err
+		}
+
+		content := fmt.Sprintf(`metadata name = 'test %d'
+metadata description = 'This is test template %d.'
+
+@sys.description('This is a test parameter.')
+param test_parameter string = 'test'
+
+@sys.description('This is a test variable.')
+var test_variable = '${test_parameter}'`, i, i)
+
+		filePath := filepath.Join(dirPath, "main.bicep")
+		err = os.WriteFile(filePath, []byte(content), 0o600)
+		if err != nil {
+			os.RemoveAll(tempDir)
+			return "", err
+		}
+	}
+
+	return tempDir, nil
+}
+
+func BenchmarkGenerateDocs(b *testing.B) {
+	fileCounts := []int{50, 100, 200}
+	sections := []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection}
+
+	for _, count := range fileCounts {
+		b.Run(fmt.Sprintf("Files-%d", count), func(b *testing.B) {
+			tempDir, err := createTestDirectory(count)
+			if err != nil {
+				b.Fatalf("Failed to create test directory: %v", err)
+			}
+			defer os.RemoveAll(tempDir)
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				err := GenerateDocs(tempDir, "", false, sections)
+				if err != nil {
+					b.Fatalf("GenerateDocs() failed: %v", err)
+				}
 			}
 		})
 	}

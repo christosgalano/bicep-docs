@@ -39,10 +39,12 @@ func CreateFile(filename string, template *types.Template, verbose bool, section
 	}
 
 	// Build Markdown string
-	markdownString, err := buildMarkdownString(template, sections)
-	if err != nil {
+	var builder strings.Builder
+	builder.Grow(estimateMarkdownSize(template, sections))
+	if err := buildMarkdownString(&builder, template, sections); err != nil {
 		return fmt.Errorf("failed to build Markdown string: %w", err)
 	}
+	markdownString := builder.String()
 
 	// Check if file needs to be updated
 	if fileExists && fileContent == markdownString {
@@ -77,12 +79,7 @@ func CreateFile(filename string, template *types.Template, verbose bool, section
 	return nil
 }
 
-// buildMarkdownString generates a markdown string based on the provided template and sections.
-// It constructs the markdown file by appending different sections in a specific order.
-// The function returns the generated markdown string and an error if any occurred.
-func buildMarkdownString(template *types.Template, sections []types.Section) (string, error) {
-	var builder strings.Builder
-
+func buildMarkdownString(builder *strings.Builder, template *types.Template, sections []types.Section) error {
 	// Template metadata
 	var title *string
 	if template.Metadata == nil || template.Metadata.Name == nil || *template.Metadata.Name == "" {
@@ -90,7 +87,7 @@ func buildMarkdownString(template *types.Template, sections []types.Section) (st
 	} else {
 		title = template.Metadata.Name
 	}
-	builder.WriteString(fmt.Sprintf("# %s\n\n", *title))
+	fmt.Fprintf(builder, "# %s\n\n", *title)
 
 	// Create a mapping between the section enum and the corresponding markdown function
 	// Each function will be called in turn to generate a specific section of the markdown file.
@@ -110,21 +107,57 @@ func buildMarkdownString(template *types.Template, sections []types.Section) (st
 	// Iterate over the sections slice and call the corresponding function for each section
 	for _, section := range sections {
 		if function, ok := sectionMarkdownFunctions[section]; ok {
-			if markdownString, err := function(template); err == nil {
-				builder.WriteString(markdownString)
-				if markdownString != "" {
-					builder.WriteString("\n")
-				}
-			} else {
-				return "", err
+			sectionContent, err := function(template)
+			if err != nil {
+				return err
+			}
+			builder.WriteString(sectionContent)
+			if sectionContent != "" {
+				builder.WriteString("\n")
 			}
 		} else {
-			return "", fmt.Errorf("invalid section: %s", section)
+			return fmt.Errorf("invalid section: %s", section)
 		}
 	}
 
 	// Trim trailing newlines and add a single newline at the end
 	result := strings.TrimRight(builder.String(), "\n") + "\n"
+	builder.Reset()
+	builder.WriteString(result)
 
-	return result, nil
+	return nil
+}
+
+// estimateMarkdownSize estimates the size of the markdown file based on the template content and sections.
+//
+//nolint:mnd,gocyclo // This function does some estimations based on the template content.
+func estimateMarkdownSize(template *types.Template, sections []types.Section) int {
+	baseSize := 500 // Start with a base size for the title and basic structure
+
+	for _, section := range sections {
+		switch section {
+		case types.DescriptionSection:
+			if template.Metadata != nil && template.Metadata.Description != nil {
+				baseSize += len(*template.Metadata.Description) + 50 // Add description length plus some overhead
+			}
+		case types.UsageSection:
+			baseSize += 150 + (len(template.Parameters) * 20) // Estimate based on number of parameters
+		case types.ModulesSection:
+			baseSize += len(template.Modules) * 100 // Estimate 100 characters per module
+		case types.ResourcesSection:
+			baseSize += len(template.Resources) * 150 // Estimate 150 characters per resource
+		case types.ParametersSection:
+			baseSize += len(template.Parameters) * 50 // Estimate 50 characters per parameter
+		case types.UserDefinedDataTypesSection:
+			baseSize += len(template.UserDefinedDataTypes) * 50 // Estimate 50 characters per user-defined type
+		case types.UserDefinedFunctionsSection:
+			baseSize += len(template.UserDefinedFunctions) * 40 // Estimate 40 characters per user-defined function
+		case types.VariablesSection:
+			baseSize += len(template.Variables) * 40 // Estimate 40 characters per variable
+		case types.OutputsSection:
+			baseSize += len(template.Outputs) * 50 // Estimate 50 characters per output
+		}
+	}
+
+	return baseSize
 }

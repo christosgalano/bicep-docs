@@ -184,7 +184,7 @@ linters:
     - dogsled
     - bodyclose
     - errorlint
-    - exportloopref
+    - copyloopvar
     - gocheckcompilerdirectives
     - mnd
     - goprintffuncname

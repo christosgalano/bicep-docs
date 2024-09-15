@@ -5,7 +5,7 @@ metadata description = 'This is a test template.'
 param test_parameter string = 'test'
 
 @sys.description('This is a test variable.')
-var test_variable = '${test_parameter}'
+var test_variable = test_parameter
 
 @sys.description('This is a test resource.')
 resource test_resource 'Microsoft.Storage/storageAccounts@2023-01-01' = {

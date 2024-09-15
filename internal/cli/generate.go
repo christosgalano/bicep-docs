@@ -6,8 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-
-	"golang.org/x/sync/errgroup"
+	"runtime"
 
 	"github.com/christosgalano/bicep-docs/internal/markdown"
 	"github.com/christosgalano/bicep-docs/internal/template"
@@ -43,30 +42,100 @@ func GenerateDocs(input, output string, verbose bool, sections []types.Section) 
 //
 // For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
 func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section) error {
-	const maxGoRoutines = 10
-	g := new(errgroup.Group)
-	g.SetLimit(maxGoRoutines)
+	numWorkers := getOptimalWorkerCount()
+	bufferSize := getOptimalBufferSize(numWorkers)
 
-	// Traverse the directory and process each main.bicep file
-	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() && d.Name() == "main.bicep" {
-			// Create a README.md file in the same directory as the main.bicep file
-			markdownFile := filepath.Join(filepath.Dir(path), "README.md")
-			g.Go(func() error {
-				return generateDocsFromBicepFile(path, markdownFile, verbose, sections)
-			})
-		}
-		return nil
-	})
-	if err != nil {
-		return err
+	jobs := make(chan string, bufferSize)
+	results := make(chan error, bufferSize)
+
+	// Start worker pool
+	for w := 1; w <= numWorkers; w++ {
+		go processFile(jobs, results, verbose, sections)
 	}
 
-	// Wait for all goroutines to finish and return the first non-nil error
-	return g.Wait()
+	// Walk the directory and enqueue the paths of all 'main.bicep' files
+	go func() {
+		err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if !d.IsDir() && d.Name() == "main.bicep" {
+				jobs <- path
+			}
+			return nil
+		})
+
+		// If an error occurs while walking the directory, send it to the results channel
+		if err != nil {
+			results <- err
+		}
+
+		// Close the jobs channel to signal workers that no more jobs will be enqueued
+		close(jobs)
+	}()
+
+	// Collect results
+	for i := 0; i < numWorkers; i++ {
+		if err := <-results; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// processFile is a worker function that processes a single Bicep file and generates its documentation.
+// It reads file paths from the jobs channel and sends any errors to the results channel.
+//
+// Note: This function assumes that the paths provided in the jobs channel are valid Bicep files.
+func processFile(jobs <-chan string, results chan<- error, verbose bool, sections []types.Section) {
+	for path := range jobs {
+		markdownFile := filepath.Join(filepath.Dir(path), "README.md")
+		err := generateDocsFromBicepFile(path, markdownFile, verbose, sections)
+		if err != nil {
+			results <- err
+			return
+		}
+	}
+	results <- nil
+}
+
+// getOptimalWorkerCount returns the optimal number of workers based on the number of CPU cores.
+//
+//nolint:mnd // Default values for the number of workers.
+func getOptimalWorkerCount() int {
+	numCPU := runtime.GOMAXPROCS(0)
+	switch {
+	case numCPU <= 2:
+		return 4
+	case numCPU <= 8:
+		return numCPU
+	default:
+		workers := numCPU * 3 / 4
+		if workers > 16 {
+			workers = 16
+		}
+		return workers
+	}
+}
+
+// getOptimalBufferSize returns the optimal buffer size for the job channel based on the number of workers.
+//
+//nolint:mnd // Default values for the buffer size.
+func getOptimalBufferSize(numWorkers int) int {
+	bufferSize := 100 * numWorkers / 2
+
+	// Ensure a minimum buffer size
+	if bufferSize < 100 {
+		return 100
+	}
+
+	// Cap the buffer size at 500
+	if bufferSize > 500 {
+		return 500
+	}
+
+	return bufferSize
 }
 
 // generateDocsFromBicepFile processes a Bicep template and creates/updates

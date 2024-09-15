@@ -179,7 +179,6 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := ParseTemplates(tt.args.bicepFile, tt.args.armFile)
@@ -288,7 +287,6 @@ func Test_parseBicepTemplate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			modules, resources, variables, err := parseBicepTemplate(tt.args.bicepFile)
@@ -345,7 +343,6 @@ func Test_parseDescription(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseDescription(tt.args.line, tt.args.scanner); !reflect.DeepEqual(got, tt.want) {
@@ -397,7 +394,6 @@ func Test_parseModule(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseModule(tt.args.line); !reflect.DeepEqual(got, tt.want) {
@@ -437,7 +433,6 @@ func Test_parseResource(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseResource(tt.args.line); !reflect.DeepEqual(got, tt.want) {
@@ -483,7 +478,6 @@ func Test_skipComment(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			skipped, err := skipComment(tt.args.line, tt.args.scanner)
