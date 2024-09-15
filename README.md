@@ -42,12 +42,10 @@ Download the latest binary from the [releases page](https://github.com/christosg
 
 To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
 
-| CLI | Minimum Required Version |
-| --- | --- |
-| Azure | 2.56.0 |
-| Bicep | 0.24.24 |
-
-Currently, you need to modify your `bicepconfig.json` to enable the *userDefinedFunctions* feature. More information [here](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions#enable-the-preview-feature).
+| CLI   | Minimum Required Version |
+| ----- | ------------------------ |
+| Azure | 2.64.0                   |
+| Bicep | 0.29.0                   |
 
 ## Usage
 
@@ -156,114 +154,7 @@ table of outputs
 
 ```
 
-<!-- markdownlint-disable -->
-<details>
-  <summary>Example documentation file:</summary>
-
-# module-name
-
-## Description
-
-Module description
-
-## Usage
-
-Here is a basic example of how to use this Bicep module:
-
-```bicep
-module reference_name 'path_to_module | container_registry_reference' = {
-  name: 'deployment_name'
-  params: {
-    // Required parameters
-    location:
-    required_array:
-    required_bool:
-    required_int:
-    required_object:
-    required_string:
-
-    // Optional parameters
-    optional_array: [
-      'value1'
-      '[__bicep.double(2)]'
-      true
-      {
-        key1: 'test'
-        key2: 42
-        key3: true
-      }
-    ]
-    optional_bool: true
-    optional_int: 42
-    optional_object: {
-      key1: 'value1'
-      key2: '[__bicep.double(2)]'
-      key3: true
-      key4: [
-        'a'
-        'b'
-        'c'
-      ]
-    }
-    optional_string: 'default'
-  }
-}
-```
-
-> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.
-
-## Resources
-
-| Symbolic Name | Type | Description |
-| --- | --- | --- |
-| identity | [Microsoft.ManagedIdentity/userAssignedIdentities](https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities) |  |
-
-## Parameters
-
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| location | string | Resource group location. |  |
-| optional_array | array | Optional array parameter. | ["value1", "[__bicep.double(2)]", true, {"key1": "test", "key2": 42, "key3": true}] |
-| optional_bool | bool | Optional boolean parameter. | true |
-| optional_int | int | Optional integer parameter. | 42 |
-| optional_object | object | Optional object parameter. | {"key1": "value1", "key2": "[__bicep.double(2)]", "key3": true, "key4": ["a", "b", "c"]} |
-| optional_string | string | Optional string parameter. | "default" |
-| required_array | array | Required array parameter. |  |
-| required_bool | bool | Required boolean parameter. |  |
-| required_int | int | Required integer parameter. |  |
-| required_object | object | Required object parameter. |  |
-| required_string | string | Required string parameter. |  |
-
-## User Defined Data Types (UDDTs)
-
-| Name | Type | Description |
-| --- | --- | --- |
-| positiveInt | int | Positive integer (> 0). |
-
-## User Defined Functions (UDFs)
-
-| Name | Description |
-| --- | --- |
-| double | Doubles a positive integer. |
-
-## Variables
-
-| Name | Description |
-| --- | --- |
-| doubleValue | Doubles the required integer. |
-
-## Outputs
-
-| Name | Type | Description |
-| --- | --- | --- |
-| clientId | string | Client ID of the identity. |
-| principalId | string | Principal ID of the identity. |
-| resourceId | string | Resource ID of the identity. |
-
-</details>
-<!-- markdownlint-enable -->
-
-### Bicep folder structure
+### Folder structure
 
 This tool is extremely useful if you are following this structure for your Bicep projects:
 
