@@ -14,7 +14,7 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// generateDocs generates documentation based on the input file or directory.
+// GenerateDocs generates documentation based on the input file or directory.
 //
 // If the input is a directory, it generates documentation for all 'main.bicep' files in the directory.
 // If the input is a Bicep file, it generates documentation for that file only.
@@ -24,7 +24,7 @@ import (
 // The sections slice contains the sections that should be included in the documentation.
 //
 // If verbose is true, additional information will be printed during the generation process.
-func generateDocs(input, output string, verbose bool, sections []types.Section) error {
+func GenerateDocs(input, output string, verbose bool, sections []types.Section) error {
 	f, err := os.Stat(input)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

@@ -44,21 +44,21 @@ func TestGenerateDocs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := generateDocs(tt.input, tt.output, tt.verbose, tt.sections)
+			err := GenerateDocs(tt.input, tt.output, tt.verbose, tt.sections)
 			if tt.expected != "" {
 				if err == nil {
-					t.Errorf("generateDocs() expected error but got none")
+					t.Errorf("GenerateDocs() expected error but got none")
 				} else if !strings.Contains(err.Error(), tt.expected) {
-					t.Errorf("generateDocs() error = %v, expected to contain = %s", err, tt.expected)
+					t.Errorf("GenerateDocs() error = %v, expected to contain = %s", err, tt.expected)
 				}
 			} else if err != nil {
-				t.Errorf("generateDocs() unexpected error = %v", err)
+				t.Errorf("GenerateDocs() unexpected error = %v", err)
 			}
 		})
 	}
 }
 
-func TestGenerateDocsFromDirectory(t *testing.T) {
+func Test_generateDocsFromDirectory(t *testing.T) {
 	tests := []struct {
 		name     string
 		dirPath  string
@@ -91,7 +91,7 @@ func TestGenerateDocsFromDirectory(t *testing.T) {
 	}
 }
 
-func TestGenerateDocsFromBicepFile(t *testing.T) {
+func Test_generateDocsFromBicepFile(t *testing.T) {
 	tests := []struct {
 		name         string
 		bicepFile    string

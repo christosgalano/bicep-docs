@@ -47,7 +47,7 @@ Azure CLI or Bicep CLI need to be installed.
 `,
 	//revive:disable:unused-parameter
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := generateDocs(input, output, verbose, sections); err != nil {
+		if err := GenerateDocs(input, output, verbose, sections); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
