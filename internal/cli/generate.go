@@ -43,6 +43,8 @@ func GenerateDocs(input, output string, verbose bool, sections []types.Section) 
 // generateDocsFromDirectory processes the directory and its subdirectories recursively.
 //
 // For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
+//
+//nolint:mnd // Sensible default.
 func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section) error {
 	g := new(errgroup.Group)
 	g.SetLimit(runtime.GOMAXPROCS(0) * 10)
