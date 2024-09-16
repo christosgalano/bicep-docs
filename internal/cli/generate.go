@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"golang.org/x/sync/errgroup"
 
@@ -43,9 +44,8 @@ func GenerateDocs(input, output string, verbose bool, sections []types.Section) 
 //
 // For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
 func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section) error {
-	const maxGoRoutines = 10
 	g := new(errgroup.Group)
-	g.SetLimit(maxGoRoutines)
+	g.SetLimit(getOptimalGoRoutines())
 
 	// Traverse the directory and process each main.bicep file
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
@@ -67,6 +67,28 @@ func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Se
 
 	// Wait for all goroutines to finish and return the first non-nil error
 	return g.Wait()
+}
+
+// getOptimalGoRoutines calculates the optimal number of goroutines based on the number of CPUs.
+//
+//nolint:mnd // Sensible defaults.
+func getOptimalGoRoutines() int {
+	numCPU := runtime.GOMAXPROCS(0)
+
+	// Start with a reasonable default
+	optimalRoutines := numCPU * 3 / 4
+
+	// Cap at 16 for most systems, but allow for high-core systems
+	if optimalRoutines > 16 {
+		optimalRoutines = 16 + (numCPU-16)/4
+	}
+
+	// Ensure we have at least 4 goroutines
+	if optimalRoutines < 4 {
+		optimalRoutines = 4
+	}
+
+	return optimalRoutines
 }
 
 // generateDocsFromBicepFile processes a Bicep template and creates/updates
