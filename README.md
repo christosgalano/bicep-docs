@@ -42,12 +42,10 @@ Download the latest binary from the [releases page](https://github.com/christosg
 
 To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install).
 
-| CLI | Minimum Required Version |
-| --- | --- |
-| Azure | 2.56.0 |
-| Bicep | 0.24.24 |
-
-Currently, you need to modify your `bicepconfig.json` to enable the *userDefinedFunctions* feature. More information [here](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions#enable-the-preview-feature).
+| CLI   | Minimum Required Version |
+| ----- | ------------------------ |
+| Azure | 2.64.0                   |
+| Bicep | 0.29.0                   |
 
 ## Usage
 
@@ -64,6 +62,18 @@ If the input is a Bicep file, the output must be a file; otherwise, an error wil
 The default value for the output is `README.md`, relative to the directory where the command is executed.
 
 **CAUTION:** If the Markdown file already exists, it will be **overwritten**.
+
+### Arguments
+
+Regarding the arguments `--include-sections` and `--exclude-sections`, the available sections are: `description`, `usage`, `modules`, `resources`, `parameters`, `udfs`, `uddts`, `variables`, `outputs`.
+
+The default sections ordered are `description,usage,modules,resources,parameters,udfs,uddts,variables,outputs`. The default input for`--exclude-sections` is `''`.  This ensures backward compatibility with the previous version.
+
+The order of the sections is respected when including them.
+
+When excluding sections, the result will be the default sections minus the excluded ones (e.g. `--exclude-sections description,usage` will include `modules,resources,parameters,udfs,uddts,variables,outputs` in that order).
+
+Both arguments cannot be provided at the same time, unless the `--include-sections` argument is the same as the default sections (e.g. `--include-sections description,usage,modules,resources,parameters,udfs,uddts,variables,outputs`).
 
 ### Example usage
 
@@ -83,6 +93,18 @@ Parse a directory and generate a README.md file for each main.bicep file with ve
 
 ```bash
 bicep-docs -i ./bicep -V
+```
+
+Parse a Bicep file and generate a README.md excluding the user-defined sections:
+
+```bash
+bicep-docs --input main.bicep --exclude-sections udfs,uddts
+```
+
+Parse a Bicep file and generate a README.md including only the resources and modules in that order:
+
+```bash
+bicep-docs ---input main.bicep --include-sections resources,modules
 ```
 
 More examples can be found [here](examples).
@@ -132,114 +154,7 @@ table of outputs
 
 ```
 
-<!-- markdownlint-disable -->
-<details>
-  <summary>Example documentation file:</summary>
-
-# module-name
-
-## Description
-
-Module description
-
-## Usage
-
-Here is a basic example of how to use this Bicep module:
-
-```bicep
-module reference_name 'path_to_module | container_registry_reference' = {
-  name: 'deployment_name'
-  params: {
-    // Required parameters
-    location:
-    required_array:
-    required_bool:
-    required_int:
-    required_object:
-    required_string:
-
-    // Optional parameters
-    optional_array: [
-      'value1'
-      '[__bicep.double(2)]'
-      true
-      {
-        key1: 'test'
-        key2: 42
-        key3: true
-      }
-    ]
-    optional_bool: true
-    optional_int: 42
-    optional_object: {
-      key1: 'value1'
-      key2: '[__bicep.double(2)]'
-      key3: true
-      key4: [
-        'a'
-        'b'
-        'c'
-      ]
-    }
-    optional_string: 'default'
-  }
-}
-```
-
-> Note: In the default values, strings enclosed in square brackets (e.g. '[resourceGroup().location]' or '[__bicep.function_name(args...)']) represent function calls or references.
-
-## Resources
-
-| Symbolic Name | Type | Description |
-| --- | --- | --- |
-| identity | [Microsoft.ManagedIdentity/userAssignedIdentities](https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities) |  |
-
-## Parameters
-
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| location | string | Resource group location. |  |
-| optional_array | array | Optional array parameter. | ["value1", "[__bicep.double(2)]", true, {"key1": "test", "key2": 42, "key3": true}] |
-| optional_bool | bool | Optional boolean parameter. | true |
-| optional_int | int | Optional integer parameter. | 42 |
-| optional_object | object | Optional object parameter. | {"key1": "value1", "key2": "[__bicep.double(2)]", "key3": true, "key4": ["a", "b", "c"]} |
-| optional_string | string | Optional string parameter. | "default" |
-| required_array | array | Required array parameter. |  |
-| required_bool | bool | Required boolean parameter. |  |
-| required_int | int | Required integer parameter. |  |
-| required_object | object | Required object parameter. |  |
-| required_string | string | Required string parameter. |  |
-
-## User Defined Data Types (UDDTs)
-
-| Name | Type | Description |
-| --- | --- | --- |
-| positiveInt | int | Positive integer (> 0). |
-
-## User Defined Functions (UDFs)
-
-| Name | Description |
-| --- | --- |
-| double | Doubles a positive integer. |
-
-## Variables
-
-| Name | Description |
-| --- | --- |
-| doubleValue | Doubles the required integer. |
-
-## Outputs
-
-| Name | Type | Description |
-| --- | --- | --- |
-| clientId | string | Client ID of the identity. |
-| principalId | string | Principal ID of the identity. |
-| resourceId | string | Resource ID of the identity. |
-
-</details>
-<!-- markdownlint-enable -->
-
-### Bicep folder structure
+### Folder structure
 
 This tool is extremely useful if you are following this structure for your Bicep projects:
 

@@ -48,8 +48,15 @@ tasks:
   test:
     desc: Run all tests for all packages
     cmds:
-      - printf "---------- markdown ---------------------------------\n\n" && task test:markdown && printf "\n\n"
-      - printf "---------- template ---------------------------\n\n" && task test:template && printf "\n\n"
+      - printf "---------- template ----------------------\n\n" && task test:template && printf "\n\n"
+      - printf "---------- markdown ----------------------\n\n" && task test:markdown && printf "\n\n"
+      - printf "---------- cli ---------------------------\n\n" && task test:cli && printf "\n\n"
+    silent: true
+
+  test:cli:
+    desc: Run tests for cli package
+    dir: ./internal/cli
+    cmd: gotestsum -f testname
     silent: true
 
   test:markdown:
@@ -71,9 +78,22 @@ tasks:
 
   ### Benchmark ###
   benchmark:
+    desc: Run benchmarks for all packages
+    cmds:
+      - task benchmark:cli
+      - task benchmark:template
+    silent: true
+
+  benchmark:cli:
+    desc: Run benchmarks for cli package
+    dir: ./internal/cli
+    cmd: go test -run=^$ -bench=^BenchmarkGenerateDocs$ -benchmem
+    silent: true
+
+  benchmark:template:
     desc: Run benchmarks for template package
-    dir: ./internal/template
-    cmd: go test -bench=. -benchmem -count 4
+    dir: ./internal/markdown
+    cmd: go test -run=^$ -bench=^BenchmarkParseTemplates$ -benchmem
     silent: true
 
   #### Build ####

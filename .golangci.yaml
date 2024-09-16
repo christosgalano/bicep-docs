@@ -14,7 +14,7 @@ output:
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   #
   # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
-  format: colored-line-number
+  formats: 'colored-line-number'
   print-issued-lines: false
   print-linter-name: true
   uniq-by-line: true
@@ -152,7 +152,7 @@ linters-settings:
   lll:
     # Max line length, lines longer will be reported.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option.
-    line-length: 150
+    line-length: 200
 
     # Tab width in spaces.
     tab-width: 1
@@ -184,9 +184,9 @@ linters:
     - dogsled
     - bodyclose
     - errorlint
-    - exportloopref
+    - copyloopvar
     - gocheckcompilerdirectives
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosimple
     - ineffassign

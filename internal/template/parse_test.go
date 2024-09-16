@@ -151,7 +151,7 @@ func TestParseTemplates(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "basic template",
+			name: "basic_template",
 			args: args{
 				bicepFile: "testdata/basic.bicep",
 				armFile:   "testdata/basic.json",
@@ -160,7 +160,7 @@ func TestParseTemplates(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "extended template",
+			name: "extended_template",
 			args: args{
 				bicepFile: "testdata/extended.bicep",
 				armFile:   "testdata/extended.json",
@@ -169,7 +169,7 @@ func TestParseTemplates(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "non-existent",
+			name: "non_existent_template",
 			args: args{
 				bicepFile: "testdata/non-existent.bicep",
 				armFile:   "testdata/non-existent.json",
@@ -179,7 +179,6 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := ParseTemplates(tt.args.bicepFile, tt.args.armFile)
@@ -240,7 +239,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 		wantErr       bool
 	}{
 		{
-			name: "testdata/basic.bicep",
+			name: "basic",
 			args: args{
 				bicepFile: "testdata/basic.bicep",
 			},
@@ -277,7 +276,7 @@ func Test_parseBicepTemplate(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name: "non-existent",
+			name: "non_existent",
 			args: args{
 				bicepFile: "testdata/non-existent.bicep",
 			},
@@ -288,7 +287,6 @@ func Test_parseBicepTemplate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			modules, resources, variables, err := parseBicepTemplate(tt.args.bicepFile)
@@ -320,7 +318,7 @@ func Test_parseDescription(t *testing.T) {
 		want *string
 	}{
 		{
-			name: "inline description",
+			name: "inline_description",
 			args: args{
 				line:    "@description('This is a description')",
 				scanner: nil,
@@ -328,7 +326,7 @@ func Test_parseDescription(t *testing.T) {
 			want: func() *string { s := "This is a description"; return &s }(),
 		},
 		{
-			name: "multiline description",
+			name: "multiline_description",
 			args: args{
 				line:    "@sys.description('''This is a multiline ",
 				scanner: bufio.NewScanner(strings.NewReader("\ndescription\n.''' )")),
@@ -336,7 +334,7 @@ func Test_parseDescription(t *testing.T) {
 			want: func() *string { s := "This is a multiline description."; return &s }(),
 		},
 		{
-			name: "no description",
+			name: "no_description",
 			args: args{
 				line:    "This is not a description",
 				scanner: nil,
@@ -345,7 +343,6 @@ func Test_parseDescription(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseDescription(tt.args.line, tt.args.scanner); !reflect.DeepEqual(got, tt.want) {
@@ -366,7 +363,7 @@ func Test_parseModule(t *testing.T) {
 		want *types.Module
 	}{
 		{
-			name: "registry source",
+			name: "registry_source",
 			args: args{
 				line:        "module test 'br:exampleregistry.azurecr.io/bicep/modules/storage:v1'",
 				description: "This is a module",
@@ -377,7 +374,7 @@ func Test_parseModule(t *testing.T) {
 			},
 		},
 		{
-			name: "local source",
+			name: "local_source",
 			args: args{
 				line:        "module test './modules/test_module/main.bicep'",
 				description: "This is a module",
@@ -388,7 +385,7 @@ func Test_parseModule(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid module",
+			name: "invalid_module",
 			args: args{
 				line:        "invalid line",
 				description: "This is not a module",
@@ -397,7 +394,6 @@ func Test_parseModule(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseModule(tt.args.line); !reflect.DeepEqual(got, tt.want) {
@@ -418,7 +414,7 @@ func Test_parseResource(t *testing.T) {
 		want *types.Resource
 	}{
 		{
-			name: "storage account",
+			name: "storage_account",
 			args: args{
 				line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01'",
 			},
@@ -428,7 +424,7 @@ func Test_parseResource(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid resource",
+			name: "invalid_resource",
 			args: args{
 				line:        "invalid line",
 				description: "This is not a resource",
@@ -437,7 +433,6 @@ func Test_parseResource(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := parseResource(tt.args.line); !reflect.DeepEqual(got, tt.want) {
@@ -458,7 +453,7 @@ func Test_skipComment(t *testing.T) {
 		args args
 	}{
 		{
-			name: "single line comment",
+			name: "single_line_comment",
 			args: args{
 				line:     "// This is a single line comment",
 				scanner:  nil,
@@ -474,7 +469,7 @@ func Test_skipComment(t *testing.T) {
 			},
 		},
 		{
-			name: "normal line",
+			name: "normal_line",
 			args: args{
 				line:     "This is a normal line",
 				scanner:  nil,
@@ -483,7 +478,6 @@ func Test_skipComment(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			skipped, err := skipComment(tt.args.line, tt.args.scanner)
