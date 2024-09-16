@@ -42,7 +42,7 @@ Example usage:
 
 Parse a Bicep file and generate a Markdown file:
 
-	bicep-docs --input main.bicep --output readme.md
+	bicep-docs -i main.bicep -o readme.md
 
 Parse a Bicep file and generate a README.md file in the same directory:
 
@@ -50,15 +50,7 @@ Parse a Bicep file and generate a README.md file in the same directory:
 
 Parse a directory and generate a README.md file for each main.bicep file with verbose output:
 
-	bicep-docs -i ./bicep -V
-
-Parse a Bicep file and generate a README.md excluding the user-defined sections:
-
-	bicep-docs --input main.bicep --exclude-sections udfs,uddts
-
-Parse a Bicep file and generate a README.md including only the resources and modules in that order:
-
-	bicep-docs ---input main.bicep --include-sections resources,modules
+	bicep-docs --input ./bicep --verbose
 
 For full usage details, run `bicep-docs --help`.
 */

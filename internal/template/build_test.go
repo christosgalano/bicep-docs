@@ -15,28 +15,28 @@ func TestBuildBicepTemplate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid_file",
+			name: "valid bicep file",
 			args: args{
 				bicepFile: "./testdata/basic.bicep",
 			},
 			wantErr: false,
 		},
 		{
-			name: "invalid_file",
+			name: "invalid bicep file",
 			args: args{
 				bicepFile: "./testdata/invalid.bicep",
 			},
 			wantErr: true,
 		},
 		{
-			name: "non_existent_file",
+			name: "non existent bicep file",
 			args: args{
 				bicepFile: "./testdata/non_existent.bicep",
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid_file_extension",
+			name: "invalid file extension",
 			args: args{
 				bicepFile: "./testdata/main.md",
 			},
@@ -80,7 +80,7 @@ func Test_commandExists(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "non_existent_command",
+			name: "non existent command",
 			args: args{
 				cmd: "some-non-existent-command",
 			},

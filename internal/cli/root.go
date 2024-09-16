@@ -8,46 +8,37 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
 // CLI flags.
 var (
-	input           string
-	output          string
-	verbose         bool
-	includeSections string
-	excludeSections string
-)
-
-// CLI variables.
-var (
-	sections []types.Section
-)
-
-// CLI constants.
-const (
-	defaultSections = "description,usage,modules,resources,parameters,uddts,udfs,variables,outputs"
+	input   string
+	output  string
+	verbose bool
 )
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Version: "v1.2.0",
+	Version: "v1.1.0",
 	Use:     "bicep-docs",
 	Short:   "bicep-docs is a command-line tool that generates documentation for Bicep templates.",
 	Long: `bicep-docs is a command-line tool that generates documentation for Bicep templates.
 
-It parses Bicep files or directories to produce Markdown documentation. For directories,
-it processes all main.bicep files, creating README.md in each directory containing a main.bicep file.
-For single Bicep files, it generates a README.md in the same directory unless an output path is specified.
-Existing README.md files will be overwritten.
+Given an input Bicep file or directory, it parses the file(s) and generates corresponding documentation in Markdown format.
 
-Azure CLI or Bicep CLI need to be installed.
+If the input is a directory, it will recursively parse all main.bicep files inside it.
+The output will be a corresponding README.md file in the same directory as the main.bicep file.
+
+If the input is a Bicep file, the output must be a file; otherwise an error will be returned.
+The default value for the output is README.md, relative to the directory where the command is executed.
+
+If the Markdown file already exists, it will be overwritten.
+
+Azure CLI or the Bicep CLI must be installed for this tool to work.
 `,
 	//revive:disable:unused-parameter
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := GenerateDocs(input, output, verbose, sections); err != nil {
+		if err := generateDocs(input, output, verbose); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -91,42 +82,4 @@ func init() {
 		false,
 		"verbose output",
 	)
-
-	// include-sections - optional
-	rootCmd.Flags().StringVarP(
-		&includeSections,
-		"include-sections",
-		"I",
-		defaultSections,
-		"comma-separated list of sections to include in the output, order matters",
-		// "available sections: description, usage, modules, resources, parameters, uddts, "+
-		// "udfs, variables, outputs",
-	)
-
-	// exclude-sections - optional
-	rootCmd.Flags().StringVarP(
-		&excludeSections,
-		"exclude-sections",
-		"E",
-		"",
-		"comma-separated list of sections to exclude from the default output; "+
-			"available sections: description, usage, modules, resources, parameters, uddts, udfs, variables, outputs",
-	)
-
-	rootCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		// Check for mutual exclusivity of include and exclude flags
-		if includeSections != defaultSections && excludeSections != "" {
-			return fmt.Errorf("include and exclude arguments cannot be provided simultaneously (even with default input for include)")
-		}
-
-		// Find the difference between include and exclude sections.
-		// This will be the final list of sections to include in the output.
-		var err error
-		sections, err = computeSectionDifference(includeSections, excludeSections)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
 }
