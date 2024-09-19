@@ -30,7 +30,7 @@ func TestGenerateDocs(t *testing.T) {
 		{
 			name:     "file_input",
 			input:    "./testdata/main.bicep",
-			output:   "README.md",
+			output:   "./testdata/README.md",
 			verbose:  false,
 			sections: []types.Section{types.ModulesSection, types.ParametersSection},
 			expected: "",
