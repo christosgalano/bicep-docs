@@ -86,7 +86,7 @@ brews:
     description: Command-line tool to generate documentation for Bicep templates
     license: MIT
     homepage: https://github.com/christosgalano/bicep-docs
-    folder: Formula
+    directory: Formula
     test: system "#{bin}/bicep-docs", "--help"
     repository:
       name: homebrew-christosgalano
