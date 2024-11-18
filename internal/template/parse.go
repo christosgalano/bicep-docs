@@ -48,13 +48,24 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 		return nil, fmt.Errorf("failed to parse ARM template: %w", err)
 	}
 
-	// Set the description of the variables
-	if len(variables) != len(template.Variables) {
-		return nil, fmt.Errorf("error parsing Bicep variables")
-	}
-	for i := range variables {
-		if variables[i].Name == template.Variables[i].Name {
-			template.Variables[i].Description = variables[i].Description
+	// Handle variables that might be optimized away in ARM template
+	if len(variables) > 0 {
+		// If we found variables in Bicep but none in ARM, use the Bicep ones
+		if len(template.Variables) == 0 {
+			template.Variables = variables
+		} else {
+			// If we have variables in both, try to match descriptions
+			varMap := make(map[string]string)
+			for _, v := range variables {
+				varMap[v.Name] = v.Description
+			}
+
+			// Apply descriptions to matching ARM template variables
+			for i := range template.Variables {
+				if desc, ok := varMap[template.Variables[i].Name]; ok {
+					template.Variables[i].Description = desc
+				}
+			}
 		}
 	}
 
