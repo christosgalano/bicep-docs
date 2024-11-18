@@ -105,6 +105,18 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 		Functions map[string]UserDefinedFunction `json:"members"`
 	}
 
+	// copyOperation represents a copy operation in the variables section of a Bicep file
+	type copyOperation struct {
+		Name  string `json:"name"`
+		Count string `json:"count"`
+		Input any    `json:"input"`
+	}
+
+	// variableSection is used to extract the copy array from the variables section of a Bicep file
+	type variableSection struct {
+		Copy []copyOperation `json:"copy,omitempty"`
+	}
+
 	type Alias Template
 	aux := &struct {
 		Parameters map[string]Parameter           `json:"parameters"`
@@ -120,36 +132,52 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Use the key of the map to set the Name field for
-	// Parameters, UserDefinedDataTypes, Variables, Outputs,
-	// and UserDefinedFunctions.
+	// Process variables section
+	if aux.Variables != nil {
+		// Check if variables contains a copy array
+		if copyData, ok := aux.Variables["copy"]; ok {
+			// Unmarshal the copy array
+			var copyOps []copyOperation
+			if copyBytes, err := json.Marshal(copyData); err == nil {
+				if err := json.Unmarshal(copyBytes, &copyOps); err == nil {
+					// Process each copy operation
+					for _, copyOp := range copyOps {
+						variable := Variable{
+							Name:  copyOp.Name,
+							Value: copyOp.Input,
+						}
+						t.Variables = append(t.Variables, variable)
+					}
+				}
+			}
+		}
 
+		// Process regular variables
+		for name, value := range aux.Variables {
+			if name == "copy" || strings.HasPrefix(name, "$fxv#") {
+				continue
+			}
+			variable := Variable{
+				Name:  name,
+				Value: value,
+			}
+			t.Variables = append(t.Variables, variable)
+		}
+	}
+
+	// Process parameters
 	for name, param := range aux.Parameters {
 		param.Name = name
 		t.Parameters = append(t.Parameters, param)
 	}
 
+	// Process data types
 	for name, dataType := range aux.DataTypes {
 		dataType.Name = name
 		t.UserDefinedDataTypes = append(t.UserDefinedDataTypes, dataType)
 	}
 
-	for name, value := range aux.Variables {
-		if strings.HasPrefix(name, "$fxv#") {
-			continue
-		}
-		variable := Variable{
-			Name:  name,
-			Value: value,
-		}
-		t.Variables = append(t.Variables, variable)
-	}
-
-	for name, output := range aux.Outputs {
-		output.Name = name
-		t.Outputs = append(t.Outputs, output)
-	}
-
+	// Process functions
 	for _, function := range aux.Functions {
 		for name, userDefinedFunction := range function.Functions {
 			userDefinedFunction.Name = name
@@ -157,8 +185,13 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// Sort Parameters, UserDefinedDataTypes, Variables,
-	// Outputs, and UserDefinedFunctions by name.
+	// Process outputs
+	for name, output := range aux.Outputs {
+		output.Name = name
+		t.Outputs = append(t.Outputs, output)
+	}
+
+	// Sort all fields
 	t.Sort()
 
 	return nil
