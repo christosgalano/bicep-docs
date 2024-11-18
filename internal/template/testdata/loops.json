@@ -1,0 +1,116 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.31.92.45157",
+      "templateHash": "8521529358606530644"
+    },
+    "name": "loop_test",
+    "description": "Test template with loop constructs"
+  },
+  "parameters": {
+    "locations": {
+      "type": "array",
+      "defaultValue": [
+        "eastus",
+        "westus",
+        "northeurope"
+      ],
+      "metadata": {
+        "description": "Array of deployment locations"
+      }
+    },
+    "namePrefix": {
+      "type": "string",
+      "defaultValue": "storage",
+      "metadata": {
+        "description": "Prefix for resource names"
+      }
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "storageConfigs",
+        "count": "[length(range(0, length(parameters('locations'))))]",
+        "input": {
+          "name": "[format('{0}{1}', parameters('namePrefix'), range(0, length(parameters('locations')))[copyIndex('storageConfigs')])]",
+          "location": "[parameters('locations')[range(0, length(parameters('locations')))[copyIndex('storageConfigs')]]]",
+          "sku": "Standard_LRS",
+          "kind": "StorageV2"
+        }
+      },
+      {
+        "name": "storageNames",
+        "count": "[length(variables('storageConfigs'))]",
+        "input": "[variables('storageConfigs')[copyIndex('storageNames')].name]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "copy": {
+        "name": "test_resource",
+        "count": "[length(variables('storageConfigs'))]"
+      },
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('storageConfigs')[copyIndex()].name]",
+      "location": "[variables('storageConfigs')[copyIndex()].location]",
+      "sku": {
+        "name": "[variables('storageConfigs')[copyIndex()].sku]"
+      },
+      "kind": "[variables('storageConfigs')[copyIndex()].kind]",
+      "metadata": {
+        "description": "This is a storage account resource array."
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "test",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.31.92.45157",
+              "templateHash": "11590200223811717167"
+            }
+          },
+          "resources": []
+        }
+      },
+      "metadata": {
+        "description": "This is a test module."
+      }
+    }
+  ],
+  "outputs": {
+    "resourceIds": {
+      "type": "array",
+      "metadata": {
+        "description": "Array of created storage account resource IDs"
+      },
+      "copy": {
+        "count": "[length(range(0, length(parameters('locations'))))]",
+        "input": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageConfigs')[range(0, length(parameters('locations')))[copyIndex()]].name)]"
+      }
+    },
+    "storageNames": {
+      "type": "array",
+      "metadata": {
+        "description": "Array of created storage account names"
+      },
+      "value": "[variables('storageNames')]"
+    }
+  }
+}

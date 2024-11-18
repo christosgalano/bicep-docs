@@ -13,10 +13,11 @@ import (
 )
 
 func TestParseTemplates(t *testing.T) {
-	templateName := "test"
-	templateDescription := "This is a test template."
-	parameterDescription := "This is a test parameter."
-	outputDescription := "This is a test output."
+	// Helper to reduce string pointer boilerplate
+	strPtr := func(s string) *string {
+		return &s
+	}
+
 	basicTemplate := &types.Template{
 		FileName: "testdata/basic.bicep",
 		Modules: []types.Module{
@@ -39,7 +40,7 @@ func TestParseTemplates(t *testing.T) {
 				Type:         "string",
 				DefaultValue: "test",
 				Metadata: &types.Metadata{
-					Description: &parameterDescription,
+					Description: strPtr("This is a test parameter."),
 				},
 			},
 		},
@@ -54,15 +55,16 @@ func TestParseTemplates(t *testing.T) {
 				Name: "test_output",
 				Type: "string",
 				Metadata: &types.Metadata{
-					Description: &outputDescription,
+					Description: strPtr("This is a test output."),
 				},
 			},
 		},
 		Metadata: &types.Metadata{
-			Name:        &templateName,
-			Description: &templateDescription,
+			Name:        strPtr("test"),
+			Description: strPtr("This is a test template."),
 		},
 	}
+
 	extendedTemplate := &types.Template{
 		FileName: "testdata/extended.bicep",
 		Modules: []types.Module{
@@ -85,7 +87,7 @@ func TestParseTemplates(t *testing.T) {
 				Type:         "string",
 				DefaultValue: "test",
 				Metadata: &types.Metadata{
-					Description: &parameterDescription,
+					Description: strPtr("This is a test parameter."),
 				},
 			},
 		},
@@ -94,14 +96,14 @@ func TestParseTemplates(t *testing.T) {
 				Name: "pint",
 				Type: "#/definitions/positiveInt",
 				Metadata: &types.Metadata{
-					Description: func() *string { s := "This is a user defined type (alias)."; return &s }(),
+					Description: strPtr("This is a user defined type (alias)."),
 				},
 			},
 			{
 				Name: "positiveInt",
 				Type: "int",
 				Metadata: &types.Metadata{
-					Description: func() *string { s := "This is a user defined type."; return &s }(),
+					Description: strPtr("This is a user defined type."),
 				},
 			},
 		},
@@ -109,13 +111,13 @@ func TestParseTemplates(t *testing.T) {
 			{
 				Name: "buildUrl",
 				Metadata: &types.Metadata{
-					Description: func() *string { s := "This is a user defined function."; return &s }(),
+					Description: strPtr("This is a user defined function."),
 				},
 			},
 			{
 				Name: "double",
 				Metadata: &types.Metadata{
-					Description: func() *string { s := "This is a user defined function with uddts."; return &s }(),
+					Description: strPtr("This is a user defined function with uddts."),
 				},
 			},
 		},
@@ -130,13 +132,78 @@ func TestParseTemplates(t *testing.T) {
 				Name: "test_output",
 				Type: "#/definitions/positiveInt",
 				Metadata: &types.Metadata{
-					Description: &outputDescription,
+					Description: strPtr("This is a test output."),
 				},
 			},
 		},
 		Metadata: &types.Metadata{
-			Name:        &templateName,
-			Description: &templateDescription,
+			Name:        strPtr("test"),
+			Description: strPtr("This is a test template."),
+		},
+	}
+	loopsTemplate := &types.Template{
+		FileName: "testdata/loops.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "test_module",
+				Source:       "./modules/test_module/main.bicep",
+				Description:  "This is a test module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "test_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a storage account resource array.",
+			},
+		},
+		Parameters: []types.Parameter{
+			{
+				Name:         "locations",
+				Type:         "array",
+				DefaultValue: []any{"eastus", "westus", "northeurope"},
+				Metadata: &types.Metadata{
+					Description: strPtr("Array of deployment locations"),
+				},
+			},
+			{
+				Name:         "namePrefix",
+				Type:         "string",
+				DefaultValue: "storage",
+				Metadata: &types.Metadata{
+					Description: strPtr("Prefix for resource names"),
+				},
+			},
+		},
+		Variables: []types.Variable{
+			{
+				Name:        "storageConfigs",
+				Description: "Array of storage account configurations",
+			},
+			{
+				Name:        "storageNames",
+				Description: "Array of generated storage account names",
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "resourceIds",
+				Type: "array",
+				Metadata: &types.Metadata{
+					Description: strPtr("Array of created storage account resource IDs"),
+				},
+			},
+			{
+				Name: "storageNames",
+				Type: "array",
+				Metadata: &types.Metadata{
+					Description: strPtr("Array of created storage account names"),
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        strPtr("loop_test"),
+			Description: strPtr("Test template with loop constructs"),
 		},
 	}
 
@@ -169,6 +236,15 @@ func TestParseTemplates(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "loops_template",
+			args: args{
+				bicepFile: "testdata/loops.bicep",
+				armFile:   "testdata/loops.json",
+			},
+			want:    loopsTemplate,
+			wantErr: false,
+		},
+		{
 			name: "non_existent_template",
 			args: args{
 				bicepFile: "testdata/non-existent.bicep",
@@ -179,6 +255,7 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := ParseTemplates(tt.args.bicepFile, tt.args.armFile)
@@ -190,29 +267,18 @@ func TestParseTemplates(t *testing.T) {
 				return
 			}
 
+			// Compare all fields properly
 			if got.FileName != tt.want.FileName {
-				t.Errorf("ParseTemplates() = %v, want %v", got.FileName, tt.want.FileName)
-			}
-			if !reflect.DeepEqual(got.Modules, tt.want.Modules) {
-				t.Errorf("ParseTemplates() = %v, want %v", got.Modules, tt.want.Modules)
-			}
-			if !reflect.DeepEqual(got.Resources, tt.want.Resources) {
-				t.Errorf("ParseTemplates() = %v, want %v", got.Resources, tt.want.Resources)
+				t.Errorf("FileName = %v, want %v", got.FileName, tt.want.FileName)
 			}
 
-			for name := range got.Parameters {
-				if !reflect.DeepEqual(got.Parameters[name], tt.want.Parameters[name]) {
-					t.Errorf("ParseTemplates() = %v, want %v", got.Parameters[name], tt.want.Parameters[name])
-				}
-			}
-			for name := range got.Outputs {
-				if !reflect.DeepEqual(got.Outputs[name], tt.want.Outputs[name]) {
-					t.Errorf("ParseTemplates() = %v, want %v", got.Outputs[name], tt.want.Outputs[name])
-				}
-			}
-			if !reflect.DeepEqual(got.Metadata, tt.want.Metadata) {
-				t.Errorf("ParseTemplates() = %v, want %v", got.Metadata, tt.want.Metadata)
-			}
+			// Compare slices with proper ordering
+			compareModules(t, got.Modules, tt.want.Modules)
+			compareResources(t, got.Resources, tt.want.Resources)
+			compareParameters(t, got.Parameters, tt.want.Parameters)
+			compareVariables(t, got.Variables, tt.want.Variables)
+			compareOutputs(t, got.Outputs, tt.want.Outputs)
+			compareMetadata(t, got.Metadata, tt.want.Metadata)
 		})
 	}
 }
@@ -287,22 +353,21 @@ func Test_parseBicepTemplate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			modules, resources, variables, err := parseBicepTemplate(tt.args.bicepFile)
+			gotModules, gotResources, gotVariables, err := parseBicepTemplate(tt.args.bicepFile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseBicepTemplate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(modules, tt.wantModules) {
-				t.Errorf("parseBicepTemplate() got modules = %v, want %v", modules, tt.wantModules)
+			if tt.wantErr {
+				return
 			}
-			if !reflect.DeepEqual(resources, tt.wantResources) {
-				t.Errorf("parseBicepTemplate() got resources = %v, want %v", resources, tt.wantResources)
-			}
-			if !reflect.DeepEqual(variables, tt.wantVariables) {
-				t.Errorf("parseBicepTemplate() got variables = %v, want %v", variables, tt.wantVariables)
-			}
+
+			compareModules(t, gotModules, tt.wantModules)
+			compareResources(t, gotResources, tt.wantResources)
+			compareVariables(t, gotVariables, tt.wantVariables)
 		})
 	}
 }
@@ -492,5 +557,119 @@ func Test_skipComment(t *testing.T) {
 				t.Errorf("got %q, want %q", tt.args.line, tt.args.expected)
 			}
 		})
+	}
+}
+
+// Helper functions for comparing slices
+func compareModules(t *testing.T, got, want []types.Module) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Errorf("Modules length = %d, want %d", len(got), len(want))
+		return
+	}
+	for i := range got {
+		if got[i].SymbolicName != want[i].SymbolicName {
+			t.Errorf("Module[%d].SymbolicName = %v, want %v", i, got[i].SymbolicName, want[i].SymbolicName)
+		}
+		if got[i].Source != want[i].Source {
+			t.Errorf("Module[%d].Source = %v, want %v", i, got[i].Source, want[i].Source)
+		}
+		if got[i].Description != want[i].Description {
+			t.Errorf("Module[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)
+		}
+	}
+}
+
+func compareResources(t *testing.T, got, want []types.Resource) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Errorf("Resources length = %d, want %d", len(got), len(want))
+		return
+	}
+	for i := range got {
+		if got[i].SymbolicName != want[i].SymbolicName {
+			t.Errorf("Resource[%d].SymbolicName = %v, want %v", i, got[i].SymbolicName, want[i].SymbolicName)
+		}
+		if got[i].Type != want[i].Type {
+			t.Errorf("Resource[%d].Type = %v, want %v", i, got[i].Type, want[i].Type)
+		}
+		if got[i].Description != want[i].Description {
+			t.Errorf("Resource[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)
+		}
+	}
+}
+
+func compareParameters(t *testing.T, got, want []types.Parameter) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Errorf("Parameters length = %d, want %d", len(got), len(want))
+		return
+	}
+	for i := range got {
+		if got[i].Name != want[i].Name {
+			t.Errorf("Parameter[%d].Name = %v, want %v", i, got[i].Name, want[i].Name)
+		}
+		if got[i].Type != want[i].Type {
+			t.Errorf("Parameter[%d].Type = %v, want %v", i, got[i].Type, want[i].Type)
+		}
+
+		if !reflect.DeepEqual(got[i].DefaultValue, want[i].DefaultValue) {
+			t.Errorf("Parameter[%d].DefaultValue = %v, want %v", i, got[i].DefaultValue, want[i].DefaultValue)
+		}
+
+		compareMetadata(t, got[i].Metadata, want[i].Metadata)
+	}
+}
+
+func compareVariables(t *testing.T, got, want []types.Variable) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Errorf("Variables length = %d, want %d", len(got), len(want))
+		return
+	}
+	for i := range got {
+		if got[i].Name != want[i].Name {
+			t.Errorf("Variable[%d].Name = %v, want %v", i, got[i].Name, want[i].Name)
+		}
+		if got[i].Description != want[i].Description {
+			t.Errorf("Variable[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)
+		}
+	}
+}
+
+func compareOutputs(t *testing.T, got, want []types.Output) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Errorf("Outputs length = %d, want %d", len(got), len(want))
+		return
+	}
+	for i := range got {
+		if got[i].Name != want[i].Name {
+			t.Errorf("Output[%d].Name = %v, want %v", i, got[i].Name, want[i].Name)
+		}
+		if got[i].Type != want[i].Type {
+			t.Errorf("Output[%d].Type = %v, want %v", i, got[i].Type, want[i].Type)
+		}
+		compareMetadata(t, got[i].Metadata, want[i].Metadata)
+	}
+}
+
+func compareMetadata(t *testing.T, got, want *types.Metadata) {
+	t.Helper()
+	if (got == nil) != (want == nil) {
+		t.Errorf("Metadata presence mismatch: got %v, want %v", got, want)
+		return
+	}
+	if got != nil {
+		if (got.Name == nil) != (want.Name == nil) {
+			t.Errorf("Metadata.Name presence mismatch")
+		} else if got.Name != nil && *got.Name != *want.Name {
+			t.Errorf("Metadata.Name = %v, want %v", *got.Name, *want.Name)
+		}
+		if (got.Description == nil) != (want.Description == nil) {
+			t.Errorf("Metadata.Description presence mismatch")
+		} else if got.Description != nil && *got.Description != *want.Description {
+			t.Errorf("Metadata.Description = %v, want %v", *got.Description, *want.Description)
+		}
 	}
 }
