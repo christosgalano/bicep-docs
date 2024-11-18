@@ -154,6 +154,35 @@ table of outputs
 
 ```
 
+### Handling of Loops
+
+The tool follows these conventions when documenting resources, modules, variables, and outputs that use copy/loop constructs:
+
+**Resources and Modules:**
+- For resource/module arrays (using copy loops), only the base resource/module is documented with its symbolic name
+- The documentation shows the type and description once, rather than documenting each iteration
+- Example:
+  ```bicep
+  resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = [for i in range(0, 5): {...}]
+  module appService 'br/modules:app:v1' = [for env in environments: {...}]
+  ```
+  Each is documented as a single entry in their respective tables
+
+**Variables and Outputs:**
+- For array comprehension variables/outputs (using copy), the item is documented once with its description
+- Both the array item and its transformed version are included in the documentation
+- Example:
+  ```bicep
+  var storageConfigs = [for i in range(0, length(locations)): {...}]
+  var ipFormatWithDuplicates = [for this in storageConfigs: {...}]
+
+  output resourceIds array = [for i in range(0, length(locations)): storageAccount[i].id]
+  output names array = [for config in storageConfigs: config.name]
+  ```
+  Each appears as a single entry in their respective tables
+
+This approach keeps the documentation clean and focused on the logical structure rather than implementation details.
+
 ### Folder structure
 
 This tool is extremely useful if you are following this structure for your Bicep projects:
