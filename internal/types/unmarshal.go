@@ -99,7 +99,7 @@ func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 // UserDefinedFunction, respectively.
 //
 // The slices are then sorted by name.
-func (t *Template) UnmarshalJSON(data []byte) error {
+func (t *Template) UnmarshalJSON(data []byte) error { //nolint:gocyclo // Complexity due to handling multiple template sections (parameters, variables, functions, etc.)
 	type function struct {
 		Namespace string                         `json:"namespace"`
 		Functions map[string]UserDefinedFunction `json:"members"`
@@ -110,11 +110,6 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 		Name  string `json:"name"`
 		Count string `json:"count"`
 		Input any    `json:"input"`
-	}
-
-	// variableSection is used to extract the copy array from the variables section of a Bicep file
-	type variableSection struct {
-		Copy []copyOperation `json:"copy,omitempty"`
 	}
 
 	type Alias Template
