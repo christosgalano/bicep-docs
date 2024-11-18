@@ -64,7 +64,6 @@ func TestParseTemplates(t *testing.T) {
 			Description: strPtr("This is a test template."),
 		},
 	}
-
 	extendedTemplate := &types.Template{
 		FileName: "testdata/extended.bicep",
 		Modules: []types.Module{
@@ -206,6 +205,49 @@ func TestParseTemplates(t *testing.T) {
 			Description: strPtr("Test template with loop constructs"),
 		},
 	}
+	variableOptimizationTemplate := &types.Template{
+		FileName: "testdata/var_optimization.bicep",
+		Parameters: []types.Parameter{
+			{
+				Name: "servicePlanName",
+				Type: "string",
+				Metadata: &types.Metadata{
+					Description: strPtr("Name of the App Service Plan to host Web-App on"),
+				},
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "servicePlan",
+				Type:         "Microsoft.Web/serverfarms",
+				Description:  "Get App Service Plan Object",
+			},
+		},
+		Variables: []types.Variable{
+			{
+				Name:        "isZoneRedundant",
+				Description: "Get resilience options from Service Plan",
+			},
+			{
+				Name:        "reserved",
+				Description: "",
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "isZoneRedundant",
+				Type: "bool",
+			},
+			{
+				Name: "reserved",
+				Type: "bool",
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        strPtr("var_optimization"),
+			Description: strPtr("Test template with variable optimization"),
+		},
+	}
 
 	type args struct {
 		bicepFile string
@@ -242,6 +284,15 @@ func TestParseTemplates(t *testing.T) {
 				armFile:   "testdata/loops.json",
 			},
 			want:    loopsTemplate,
+			wantErr: false,
+		},
+		{
+			name: "var_optimization_template",
+			args: args{
+				bicepFile: "testdata/var_optimization.bicep",
+				armFile:   "testdata/var_optimization.json",
+			},
+			want:    variableOptimizationTemplate,
 			wantErr: false,
 		},
 		{
