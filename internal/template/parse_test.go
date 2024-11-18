@@ -255,7 +255,6 @@ func TestParseTemplates(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := ParseTemplates(tt.args.bicepFile, tt.args.armFile)
@@ -353,7 +352,6 @@ func Test_parseBicepTemplate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			gotModules, gotResources, gotVariables, err := parseBicepTemplate(tt.args.bicepFile)
