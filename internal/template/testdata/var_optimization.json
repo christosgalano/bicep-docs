@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.31.92.45157",
+      "templateHash": "11802698965472727578"
+    },
+    "name": "var_optimization",
+    "description": "Test template with variable optimization"
+  },
+  "parameters": {
+    "servicePlanName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the App Service Plan to host Web-App on"
+      }
+    }
+  },
+  "resources": [],
+  "outputs": {
+    "isZoneRedundant": {
+      "type": "bool",
+      "value": "[reference(resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName')), '2024-04-01').zoneRedundant]"
+    },
+    "reserved": {
+      "type": "bool",
+      "value": "[reference(resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName')), '2024-04-01').reserved]"
+    }
+  }
+}
