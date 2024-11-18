@@ -558,7 +558,7 @@ func Test_skipComment(t *testing.T) {
 	}
 }
 
-// Helper functions for comparing slices
+// Helper functions for comparing slices.
 func compareModules(t *testing.T, got, want []types.Module) {
 	t.Helper()
 	if len(got) != len(want) {
