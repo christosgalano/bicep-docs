@@ -5,16 +5,8 @@ go 1.23
 require (
 	github.com/google/uuid v1.6.0
 	github.com/json-iterator/go v1.1.12
-<<<<<<< ours
-	github.com/spf13/cobra v1.8.1
-	golang.org/x/sync v0.11.0
-||||||| ancestor
-	github.com/spf13/cobra v1.8.1
-	golang.org/x/sync v0.10.0
-=======
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/sync v0.11.0
->>>>>>> theirs
 )
 
 require (
