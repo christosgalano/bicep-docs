@@ -17,3 +17,4 @@ dist/
 icons/
 .DS_Store
 .vscode/
+test/
