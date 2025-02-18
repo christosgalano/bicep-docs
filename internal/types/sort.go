@@ -12,6 +12,11 @@ func (t *Template) Sort() {
 	sort.Slice(t.UserDefinedDataTypes, func(i, j int) bool {
 		return t.UserDefinedDataTypes[i].Name < t.UserDefinedDataTypes[j].Name
 	})
+	for i := range t.UserDefinedDataTypes {
+		sort.Slice(t.UserDefinedDataTypes[i].Properties, func(j, k int) bool {
+			return t.UserDefinedDataTypes[i].Properties[j].Name < t.UserDefinedDataTypes[i].Properties[k].Name
+		})
+	}
 
 	sort.Slice(t.Variables, func(i, j int) bool {
 		return t.Variables[i].Name < t.Variables[j].Name
