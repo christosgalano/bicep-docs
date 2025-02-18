@@ -321,7 +321,6 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Optional parameters (with a default value).
 	builder.WriteString("\n    // Optional parameters\n")
 	for _, parameter := range template.Parameters {
-		fmt.Println(parameter.Name)
 		if parameter.DefaultValue == nil && !parameter.Nullable {
 			continue
 		}
