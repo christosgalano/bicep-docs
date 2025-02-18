@@ -54,6 +54,10 @@ jobs:
     - name: Install Go tools
       run: task setup:test
 
+    - name: Security scan
+      id: security
+      run: task security
+    
     - name: Test
       id: test
       run: task test
@@ -61,7 +65,7 @@ jobs:
     - name: Code coverage
       id: coverage
       run: task coverage
-
+    
     - name: Benchmark
       if: github.event_name == 'pull_request'
       run: task benchmark

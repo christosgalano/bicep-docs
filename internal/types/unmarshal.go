@@ -61,6 +61,7 @@ func (o *Output) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// Process type or $ref
 	tr, err := unmarshalTypeOrRef(data)
 	if err != nil {
 		return err
@@ -75,9 +76,39 @@ func (o *Output) UnmarshalJSON(data []byte) error {
 func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 	type Alias UserDefinedDataType
 	aux := &struct {
+		Properties map[string]UserDefinedDataTypeProperty `json:"properties"`
 		*Alias
 	}{
 		Alias: (*Alias)(u),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Process type or $ref
+	tr, err := unmarshalTypeOrRef(data)
+	if err != nil {
+		return err
+	}
+	u.Type = tr
+
+	// Process properties
+	for name, property := range aux.Properties {
+		property.Name = name
+		u.Properties = append(u.Properties, property)
+	}
+
+	return nil
+}
+
+// UnmarshalJSON unmarshals a JSON object into a UserDefinedDataTypeProperty.
+// The type field can be either a type or a $ref.
+func (p *UserDefinedDataTypeProperty) UnmarshalJSON(data []byte) error {
+	type Alias UserDefinedDataTypeProperty
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(p),
 	}
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
@@ -87,7 +118,7 @@ func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	u.Type = tr
+	p.Type = tr
 
 	return nil
 }

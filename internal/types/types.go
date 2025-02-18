@@ -71,7 +71,21 @@ type Parameter struct {
 // The name is the name of the user defined data type.
 // The type is the type of the user defined data type (e.g. "object" or even including other user defined types).
 // The metadata part is the optional metadata part of the user defined data type (just the description).
+// The properties are the properties of the user defined data type (e.g. fields in an object).
 type UserDefinedDataType struct {
+	Name       string                        `json:"-"`
+	Type       string                        `json:"-"`
+	Metadata   *Metadata                     `json:"metadata"`
+	Properties []UserDefinedDataTypeProperty `json:"-"`
+}
+
+// UserDefinedDataTypeProperty is a struct that contains the information about a property of a user defined data type.
+// A property has a name, a type and an optional metadata part.
+//
+// The name is the name of the property.
+// The type is the type of the property (e.g. "string" or even a user defined type).
+// The metadata part is the optional metadata part of the property (just the description).
+type UserDefinedDataTypeProperty struct {
 	Name     string    `json:"-"`
 	Type     string    `json:"-"`
 	Metadata *Metadata `json:"metadata"`

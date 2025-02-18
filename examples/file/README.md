@@ -5,7 +5,7 @@ providing the output file name.
 
 ## Running the Example
 
-1. Navigate to the `file/bicep` directory.
+1. Navigate to the `examples/file/bicep` directory.
 2. Run the following command:
 
 ```bash

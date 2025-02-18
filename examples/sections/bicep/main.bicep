@@ -23,7 +23,7 @@ func double(input positiveInt) positiveInt => input * 2
 var test_number = 10
 
 @sys.description('This is a test resource.')
-resource st 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource st 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: name
   location: location
   sku: {

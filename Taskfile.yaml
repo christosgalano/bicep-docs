@@ -34,7 +34,7 @@ tasks:
     desc: Install necessary testing tools
     cmds:
       - go install gotest.tools/gotestsum@latest
-      - go install github.com/axw/gocov/gocov@latest
+      - go install golang.org/x/tools/cmd/deadcode@latest
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
     silent: true
 
@@ -71,9 +71,35 @@ tasks:
     cmd: gotestsum -f testname
     silent: true
 
+  deadcode:
+    desc: Run deadcode
+    cmd: deadcode ./...
+    silent: true
+
+  security:
+    desc: Run gosec
+    cmd: gosec -conf .gosec.json ./...
+    silent: true
+
   coverage:
     desc: Generate coverage information for all packages
-    cmd: gocov test ./... | gocov report
+    cmd: go test -cover ./internal/markdown ./internal/template ./internal/cli
+    silent: true
+
+  coverage:markdown:
+    desc: Generate coverage information for markdown package
+    cmds:
+      - go test -coverprofile=coverage.out ./internal/markdown
+      - go tool cover -func=coverage.out
+      - rm coverage.out
+    silent: true
+
+  coverage:template:
+    desc: Generate coverage information for template package
+    cmds:
+      - go test -coverprofile=coverage.out ./internal/template
+      - go tool cover -func=coverage.out
+      - rm coverage.out
     silent: true
 
   ### Benchmark ###

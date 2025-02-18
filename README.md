@@ -44,8 +44,8 @@ To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](htt
 
 | CLI   | Minimum Required Version |
 | ----- | ------------------------ |
-| Azure | 2.64.0                   |
-| Bicep | 0.29.0                   |
+| Azure | 2.69.0                   |
+| Bicep | 0.33.0                   |
 
 ## Usage
 
@@ -139,6 +139,14 @@ table of parameters
 ## User Defined Data Types (UDDTs)
 
 table of UDDTs
+
+For every UDDT u with properties, a sub-section is created:
+
+### u
+
+table of properties
+
+...
 
 ## User Defined Functions (UDFs)
 

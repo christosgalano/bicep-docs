@@ -16,7 +16,7 @@ bicep
 
 ## Running the Example
 
-1. Navigate to the `directory/bicep` directory.
+1. Navigate to the `examples/directory/bicep` directory.
 2. Run the following command:
 
 ```bash

@@ -42,9 +42,17 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## User Defined Data Types (UDDTs)
 
+| Name | Type | Description | Properties |
+| --- | --- | --- | --- |
+| customType | object | Custom type for the input parameter. | [View Properties](#customtype) |
+| positiveInt | int | Positive integer (> 0). |  |
+
+### customType
+
 | Name | Type | Description |
 | --- | --- | --- |
-| positiveInt | int | Positive integer (> 0). |
+| property1 | string | This is a string property of the custom type. |
+| property2 | positiveInt (uddt) | This is a positive integer property of the custom type. |
 
 ## User Defined Functions (UDFs)
 
@@ -56,7 +64,7 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 | Name | Description |
 | --- | --- |
-| test_number | Doubles a positive integer. |
+| test_number |  |
 
 ## Outputs
 
