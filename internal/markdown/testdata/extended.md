@@ -13,9 +13,11 @@ module reference_name 'path_to_module | container_registry_reference' = {
   name: 'deployment_name'
   params: {
     // Required parameters
+    required:
 
     // Optional parameters
-    test_parameter: 'test'
+    nullable: null
+    optional: 'test'
   }
 }
 ```
@@ -38,7 +40,9 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| test_parameter | string | This is a test parameter. | "test" |
+| required | string | This is a required parameter. |  |
+| nullable | string | This is a nullable parameter. | null |
+| optional | string | This is an optional parameter. | "test" |
 
 ## User Defined Data Types (UDDTs)
 
