@@ -20,10 +20,19 @@ type positiveInt = int
 @sys.description('Doubles a positive integer.')
 func double(input positiveInt) positiveInt => input * 2
 
+@sys.description('Custom type for the input parameter.')
+type customType = {
+  @sys.description('This is a string property of the custom type.')
+  property1: string
+
+  @sys.description('This is a positive integer property of the custom type.')
+  property2: positiveInt
+}
+
 var test_number = 10
 
 @sys.description('This is a test resource.')
-resource st 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource st 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: name
   location: location
   sku: {
