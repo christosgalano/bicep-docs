@@ -3,7 +3,7 @@
 # This script generates a code coverage badge and adds it to the README.md file.
 
 # Find the coverage percentage
-go test ./... -coverprofile coverage.out --covermode count
+go test ./internal/markdown ./internal/template ./internal/cli -coverprofile coverage.out --covermode count
 COVERAGE=$(go tool cover -func=coverage.out | grep total: | grep -Eo '[0-9]+\.[0-9]+')
 COLOR=orange
 if (( $(echo "$COVERAGE <= 50" | bc -l) )) ; then
