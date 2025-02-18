@@ -132,6 +132,29 @@ func TestCreateFile(t *testing.T) {
 					Description: func() *string { s := "This is a user defined type."; return &s }(),
 				},
 			},
+			{
+				Name: "custom_type",
+				Type: "object",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type with properties."; return &s }(),
+				},
+				Properties: []types.UserDefinedDataTypeProperty{
+					{
+						Name: "property1",
+						Type: "string",
+						Metadata: &types.Metadata{
+							Description: func() *string { s := "This is a property of a user defined type."; return &s }(),
+						},
+					},
+					{
+						Name: "property_2",
+						Type: "#/definitions/positiveInt",
+						Metadata: &types.Metadata{
+							Description: func() *string { s := "This is another property of a user defined type which uses ref."; return &s }(),
+						},
+					},
+				},
+			},
 		},
 		UserDefinedFunctions: []types.UserDefinedFunction{
 			{

@@ -42,10 +42,18 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## User Defined Data Types (UDDTs)
 
+| Name | Type | Description | Properties |
+| --- | --- | --- | --- |
+| pint | positiveInt (uddt) | This is a user defined type (alias). |  |
+| positiveInt | int | This is a user defined type. |  |
+| custom_type | object | This is a user defined type with properties. | [View Properties](#custom_type) |
+
+### custom_type
+
 | Name | Type | Description |
 | --- | --- | --- |
-| pint | positiveInt (uddt) | This is a user defined type (alias). |
-| positiveInt | int | This is a user defined type. |
+| property1 | string | This is a property of a user defined type. |
+| property_2 | positiveInt (uddt) | This is another property of a user defined type which uses ref. |
 
 ## User Defined Functions (UDFs)
 

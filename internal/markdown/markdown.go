@@ -11,28 +11,79 @@ import (
 	"github.com/christosgalano/bicep-docs/internal/types"
 )
 
-// MarkdownTable represents a table in a Markdown document.
-// It contains a title, headers, and rows.
-type MarkdownTable struct {
-	Title   string
-	Headers []string
-	Rows    [][]string
+// HeaderType represents the type of header in a Markdown document.
+type HeaderType int
+
+const (
+	H1 HeaderType = iota + 1 // H1 represents a level 1 header (#)
+	H2                       // H2 represents a level 2 header (##)
+	H3                       // H3 represents a level 3 header (###)
+)
+
+// String returns the string representation of the HeaderType.
+func (h HeaderType) String() string {
+	switch h {
+	case H1:
+		return "#"
+	case H2:
+		return "##" //nolint:goconst // Ignore the duplication of the return value.
+	case H3:
+		return "###"
+	default:
+		return "##" // Default to H2 if invalid
+	}
 }
 
-// NewMarkdownTable creates a new MarkdownTable with the specified title, headers, and rows.
-func NewMarkdownTable(title string, headers []string, rows [][]string) *MarkdownTable {
-	return &MarkdownTable{Title: title, Headers: headers, Rows: rows}
+// MarkdownTable represents a table in a Markdown document.
+// It contains a title, header type, headers, and rows.
+type MarkdownTable struct {
+	Title      string
+	HeaderType HeaderType
+	Headers    []string
+	Rows       [][]string
+}
+
+// NewMarkdownTable creates a new MarkdownTable with the specified title, header type, headers, and rows.
+// If headerType is invalid, it defaults to H2.
+// If headers is nil or empty, it returns nil.
+// If rows is nil, it defaults to an empty slice.
+func NewMarkdownTable(title string, headerType HeaderType, headers []string, rows [][]string) *MarkdownTable {
+	if len(headers) == 0 {
+		return nil
+	}
+
+	if headerType < H1 || headerType > H3 {
+		headerType = H2
+	}
+
+	if rows == nil {
+		rows = [][]string{}
+	}
+
+	return &MarkdownTable{
+		Title:      title,
+		HeaderType: headerType,
+		Headers:    headers,
+		Rows:       rows,
+	}
 }
 
 // String returns the string representation of the MarkdownTable.
 // It generates the table headers and rows and returns them as a single string.
 func (table *MarkdownTable) String() string {
 	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("## %s\n\n", table.Title))
+
+	// Add title with proper header level
+	builder.WriteString(fmt.Sprintf("%s %s\n\n", table.HeaderType.String(), table.Title))
+
+	// Add table headers
 	builder.WriteString(generateTableHeaders(table.Headers))
+
+	// Add table rows
 	for _, row := range table.Rows {
 		builder.WriteString(generateTableRow(row))
 	}
+
 	return builder.String()
 }
 
@@ -78,7 +129,7 @@ func generateModulesSection(template *types.Template) (string, error) { //nolint
 		description = strings.ReplaceAll(description, "\n", "<br>")
 		rows[i] = []string{module.SymbolicName, module.Source, description}
 	}
-	return NewMarkdownTable("Modules", headers, rows).String(), nil
+	return NewMarkdownTable("Modules", H2, headers, rows).String(), nil
 }
 
 // generateResourcesSection converts a template's resources into a markdown table.
@@ -97,7 +148,7 @@ func generateResourcesSection(template *types.Template) (string, error) { //noli
 		description = strings.ReplaceAll(description, "\n", "<br>")
 		rows[i] = []string{resource.SymbolicName, typeLink, description}
 	}
-	return NewMarkdownTable("Resources", headers, rows).String(), nil
+	return NewMarkdownTable("Resources", H2, headers, rows).String(), nil
 }
 
 // generateParametersSection generates the parameters section of a template in markdown format.
@@ -131,7 +182,7 @@ func generateParametersSection(template *types.Template) (string, error) {
 		}
 		rows[i] = []string{parameter.Name, extractType(parameter.Type), extractDescription(parameter.Metadata), defaultValue}
 	}
-	return NewMarkdownTable("Parameters", headers, rows).String(), nil
+	return NewMarkdownTable("Parameters", H2, headers, rows).String(), nil
 }
 
 // generateOutputsSection generates the outputs section of the template markdown.
@@ -146,7 +197,7 @@ func generateOutputsSection(template *types.Template) (string, error) { //nolint
 	for i, output := range template.Outputs {
 		rows[i] = []string{output.Name, extractType(output.Type), extractDescription(output.Metadata)}
 	}
-	return NewMarkdownTable("Outputs", headers, rows).String(), nil
+	return NewMarkdownTable("Outputs", H2, headers, rows).String(), nil
 }
 
 // generateUserDefinedDataTypesSection generates a markdown table section for user-defined data types (UDDTs) based on the provided template.
@@ -158,12 +209,43 @@ func generateUserDefinedDataTypesSection(template *types.Template) (string, erro
 	if len(template.UserDefinedDataTypes) == 0 {
 		return "", nil
 	}
-	headers := []string{"Name", "Type", "Description"}
+
+	// Main table
+	headers := []string{"Name", "Type", "Description", "Properties"}
 	rows := make([][]string, len(template.UserDefinedDataTypes))
 	for i, dataType := range template.UserDefinedDataTypes {
-		rows[i] = []string{dataType.Name, extractType(dataType.Type), extractDescription(dataType.Metadata)}
+		propertiesColumn := ""
+		if len(dataType.Properties) > 0 {
+			propertiesColumn = fmt.Sprintf("[View Properties](#%s)", strings.ToLower(dataType.Name))
+		}
+
+		rows[i] = []string{
+			dataType.Name,
+			extractType(dataType.Type),
+			extractDescription(dataType.Metadata),
+			propertiesColumn,
+		}
 	}
-	return NewMarkdownTable("User Defined Data Types (UDDTs)", headers, rows).String(), nil
+	table := NewMarkdownTable("User Defined Data Types (UDDTs)", H2, headers, rows).String()
+
+	// Sub-tables for properties
+	propertyHeaders := []string{"Name", "Type", "Description"}
+	for _, dataType := range template.UserDefinedDataTypes {
+		if len(dataType.Properties) == 0 {
+			continue
+		}
+		propertyRows := make([][]string, len(dataType.Properties))
+		for i, property := range dataType.Properties {
+			propertyRows[i] = []string{
+				property.Name,
+				extractType(property.Type),
+				extractDescription(property.Metadata),
+			}
+		}
+		table += "\n" + NewMarkdownTable(dataType.Name, H3, propertyHeaders, propertyRows).String()
+	}
+
+	return table, nil
 }
 
 // generateUserDefinedFunctionsSection converts a template's user-defined functions into a markdown table.
@@ -179,7 +261,7 @@ func generateUserDefinedFunctionsSection(template *types.Template) (string, erro
 	for i, function := range template.UserDefinedFunctions {
 		rows[i] = []string{function.Name, extractDescription(function.Metadata)}
 	}
-	return NewMarkdownTable("User Defined Functions (UDFs)", headers, rows).String(), nil
+	return NewMarkdownTable("User Defined Functions (UDFs)", H2, headers, rows).String(), nil
 }
 
 // generateVariablesSection generates the variables section of the markdown document based on the provided template.
@@ -194,7 +276,7 @@ func generateVariablesSection(template *types.Template) (string, error) { //noli
 	for i, variable := range template.Variables {
 		rows[i] = []string{variable.Name, variable.Description}
 	}
-	return NewMarkdownTable("Variables", headers, rows).String(), nil
+	return NewMarkdownTable("Variables", H2, headers, rows).String(), nil
 }
 
 // generateUsageSection generates the usage section for the Bicep module.
