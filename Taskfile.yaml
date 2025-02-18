@@ -34,6 +34,7 @@ tasks:
     desc: Install necessary testing tools
     cmds:
       - go install gotest.tools/gotestsum@latest
+      - go install golang.org/x/tools/cmd/deadcode@latest
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
     silent: true
 
@@ -68,6 +69,16 @@ tasks:
     desc: Run tests for template package
     dir: ./internal/template
     cmd: gotestsum -f testname
+    silent: true
+
+  deadcode:
+    desc: Run deadcode
+    cmd: deadcode ./...
+    silent: true
+
+  security:
+    desc: Run gosec
+    cmd: gosec -conf .gosec.json ./...
     silent: true
 
   coverage:

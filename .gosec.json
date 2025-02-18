@@ -1,0 +1,7 @@
+{
+  "global": {
+    "nosec": "enabled",
+    "audit": "enabled",
+    "exclude": "G204,G304"
+  }
+}
