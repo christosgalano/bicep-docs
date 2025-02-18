@@ -158,12 +158,15 @@ func generateParametersSection(template *types.Template) (string, error) {
 	if len(template.Parameters) == 0 {
 		return "", nil
 	}
+
 	re := regexp.MustCompile(`([^ ]):([^ ])|([^ ]),([^ ])`)
 	headers := []string{"Name", "Type", "Description", "Default"}
 	rows := make([][]string, len(template.Parameters))
+
 	for i, parameter := range template.Parameters {
-		defaultValue := ""
-		if parameter.DefaultValue != nil {
+		var defaultValue string
+		switch {
+		case parameter.DefaultValue != nil:
 			jsonValue, err := json.Marshal(parameter.DefaultValue)
 			if err != nil {
 				return "", fmt.Errorf("failed to marshal default value: %w", err)
@@ -179,9 +182,20 @@ func generateParametersSection(template *types.Template) (string, error) {
 			})
 			defaultValue = strings.ReplaceAll(defaultValue, "\r\n", "\n")
 			defaultValue = strings.ReplaceAll(defaultValue, "\n", "<br>")
+		case parameter.Nullable:
+			defaultValue = "null"
+		default:
+			defaultValue = ""
 		}
-		rows[i] = []string{parameter.Name, extractType(parameter.Type), extractDescription(parameter.Metadata), defaultValue}
+
+		rows[i] = []string{
+			parameter.Name,
+			extractType(parameter.Type),
+			extractDescription(parameter.Metadata),
+			defaultValue,
+		}
 	}
+
 	return NewMarkdownTable("Parameters", H2, headers, rows).String(), nil
 }
 
@@ -298,7 +312,8 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Required parameters (without a default value).
 	builder.WriteString("    // Required parameters\n")
 	for _, parameter := range template.Parameters {
-		if parameter.DefaultValue == nil {
+		// A parameter is required if it has no default value and is not nullable.
+		if parameter.DefaultValue == nil && !parameter.Nullable {
 			builder.WriteString(fmt.Sprintf("    %s:\n", parameter.Name))
 		}
 	}
@@ -306,7 +321,8 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Optional parameters (with a default value).
 	builder.WriteString("\n    // Optional parameters\n")
 	for _, parameter := range template.Parameters {
-		if parameter.DefaultValue == nil {
+		fmt.Println(parameter.Name)
+		if parameter.DefaultValue == nil && !parameter.Nullable {
 			continue
 		}
 		jsonValue, err := json.MarshalIndent(parameter.DefaultValue, "    ", "  ")

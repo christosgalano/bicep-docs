@@ -109,11 +109,26 @@ func TestCreateFile(t *testing.T) {
 		},
 		Parameters: []types.Parameter{
 			{
-				Name:         "test_parameter",
+				Name: "required",
+				Type: "string",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a required parameter."; return &s }(),
+				},
+			},
+			{
+				Name:     "nullable",
+				Type:     "string",
+				Nullable: true,
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a nullable parameter."; return &s }(),
+				},
+			},
+			{
+				Name:         "optional",
 				Type:         "string",
 				DefaultValue: "test",
 				Metadata: &types.Metadata{
-					Description: &parameterDescription,
+					Description: func() *string { s := "This is an optional parameter."; return &s }(),
 				},
 			},
 		},
