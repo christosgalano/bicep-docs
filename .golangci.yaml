@@ -3,21 +3,14 @@
 run:
   timeout: 5m
   tests: true
-  skip-dirs: []
-  skip-files: []
 
 output:
   # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
-  #
-  # Multiple can be specified by separating them by comma, output can be provided
-  # for each of them by separating format name and path by colon symbol.
-  # Output path can be either `stdout`, `stderr` or path to the file to write to.
-  #
-  # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
-  formats: 'colored-line-number'
+  formats:
+    - format: colored-line-number
+      path: stdout
   print-issued-lines: false
   print-linter-name: true
-  uniq-by-line: true
   sort-results: true
 
 linters-settings:
@@ -147,7 +140,8 @@ linters-settings:
 
   govet:
     # Report about shadowed variables.
-    check-shadowing: false
+    disable:
+      - shadow
 
   lll:
     # Max line length, lines longer will be reported.
