@@ -14,10 +14,13 @@ module reference_name 'path_to_module | container_registry_reference' = {
   params: {
     // Required parameters
     required:
+    pint_array:
+    simple_array:
 
     // Optional parameters
     nullable: null
     optional: 'test'
+    string_array: []
   }
 }
 ```
@@ -43,13 +46,17 @@ module reference_name 'path_to_module | container_registry_reference' = {
 | required | string | This is a required parameter. |  |
 | nullable | string | This is a nullable parameter. | null |
 | optional | string | This is an optional parameter. | "test" |
+| string_array | string[] | This is a string array parameter. | [] |
+| pint_array | positive_int[] (uddt) | This is a positive int custom type array parameter. |  |
+| simple_array | array | This is simple array parameter. |  |
 
 ## User Defined Data Types (UDDTs)
 
 | Name | Type | Description | Properties |
 | --- | --- | --- | --- |
-| pint | positiveInt (uddt) | This is a user defined type (alias). |  |
-| positiveInt | int | This is a user defined type. |  |
+| pint | positive_int (uddt) | This is a user defined type (alias). |  |
+| positive_int | int | This is a user defined type. |  |
+| string_array | string[] | This is a user defined type with array items. |  |
 | custom_type | object | This is a user defined type with properties. | [View Properties](#custom_type) |
 
 ### custom_type
@@ -57,14 +64,16 @@ module reference_name 'path_to_module | container_registry_reference' = {
 | Name | Type | Description |
 | --- | --- | --- |
 | property1 | string | This is a property of a user defined type. |
-| property_2 | positiveInt (uddt) | This is another property of a user defined type which uses ref. |
+| property_2 | positive_int (uddt) | This is another property of a user defined type which uses ref. |
+| property_3 | positive_int[] (uddt) | This is a property of a user defined type with array items. |
 
 ## User Defined Functions (UDFs)
 
-| Name | Description |
-| --- | --- |
-| buildUrl | This is a user defined function. |
-| double | This is a user defined function with uddts. |
+| Name | Description | Output Type |
+| --- | --- | --- |
+| build_url | This is a user defined function. | string |
+| double | This is a user defined function with uddts. | positive_int (uddt) |
+| get_string_array | This is a user defined function with array items as output. | string[] |
 
 ## Variables
 
@@ -76,4 +85,5 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 | Name | Type | Description |
 | --- | --- | --- |
-| test_output | positiveInt (uddt) | This is a test output. |
+| pint | positive_int (uddt) | This is an output with uddt. |
+| pint_array | positive_int[] (uddt) | This is an output with uddt array items. |

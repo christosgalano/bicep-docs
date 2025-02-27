@@ -9,6 +9,7 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+// unmarshalTypeOrRef unmarshals a JSON object into a type or a $ref.
 func unmarshalTypeOrRef(data []byte) (string, error) {
 	var result struct {
 		Type string `json:"type"`

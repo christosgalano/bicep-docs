@@ -28,7 +28,9 @@ func TestCreateFile(t *testing.T) {
 	templateName := "test"
 	templateDescription := "This is a test template."
 	parameterDescription := "This is a test parameter."
-	outputDescription := "This is a test output."
+	stringType := "string"
+	positiveIntType := "#/definitions/positive_int"
+
 	basicTemplate := &types.Template{
 		FileName: "test.bicep",
 		Modules: []types.Module{
@@ -82,7 +84,7 @@ func TestCreateFile(t *testing.T) {
 				Name: "test_output",
 				Type: "string",
 				Metadata: &types.Metadata{
-					Description: &outputDescription,
+					Description: func() *string { s := "This is a test output."; return &s }(),
 				},
 			},
 		},
@@ -131,20 +133,54 @@ func TestCreateFile(t *testing.T) {
 					Description: func() *string { s := "This is an optional parameter."; return &s }(),
 				},
 			},
+			{
+				Name:         "string_array",
+				Type:         "array",
+				Items:        func() *types.Items { i := &types.Items{Type: &stringType}; return i }(),
+				DefaultValue: []string{},
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a string array parameter."; return &s }(),
+				},
+			},
+			{
+				Name:  "pint_array",
+				Type:  "array",
+				Items: func() *types.Items { i := &types.Items{Ref: &positiveIntType}; return i }(),
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a positive int custom type array parameter."; return &s }(),
+				},
+			},
+			{
+				Name: "simple_array",
+				Type: "array",
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is simple array parameter."; return &s }(),
+				},
+			},
 		},
 		UserDefinedDataTypes: []types.UserDefinedDataType{
 			{
 				Name: "pint",
-				Type: "#/definitions/positiveInt",
+				Type: positiveIntType,
 				Metadata: &types.Metadata{
 					Description: func() *string { s := "This is a user defined type (alias)."; return &s }(),
 				},
 			},
 			{
-				Name: "positiveInt",
+				Name: "positive_int",
 				Type: "int",
 				Metadata: &types.Metadata{
 					Description: func() *string { s := "This is a user defined type."; return &s }(),
+				},
+			},
+			{
+				Name: "string_array",
+				Type: "array",
+				Items: &types.Items{
+					Type: &stringType,
+				},
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined type with array items."; return &s }(),
 				},
 			},
 			{
@@ -163,9 +199,19 @@ func TestCreateFile(t *testing.T) {
 					},
 					{
 						Name: "property_2",
-						Type: "#/definitions/positiveInt",
+						Type: positiveIntType,
 						Metadata: &types.Metadata{
 							Description: func() *string { s := "This is another property of a user defined type which uses ref."; return &s }(),
+						},
+					},
+					{
+						Name: "property_3",
+						Type: "array",
+						Items: &types.Items{
+							Ref: &positiveIntType,
+						},
+						Metadata: &types.Metadata{
+							Description: func() *string { s := "This is a property of a user defined type with array items."; return &s }(),
 						},
 					},
 				},
@@ -173,15 +219,33 @@ func TestCreateFile(t *testing.T) {
 		},
 		UserDefinedFunctions: []types.UserDefinedFunction{
 			{
-				Name: "buildUrl",
+				Name: "build_url",
+				Output: types.Output{
+					Type: stringType,
+				},
 				Metadata: &types.Metadata{
 					Description: func() *string { s := "This is a user defined function."; return &s }(),
 				},
 			},
 			{
 				Name: "double",
+				Output: types.Output{
+					Type: positiveIntType,
+				},
 				Metadata: &types.Metadata{
 					Description: func() *string { s := "This is a user defined function with uddts."; return &s }(),
+				},
+			},
+			{
+				Name: "get_string_array",
+				Output: types.Output{
+					Type: "array",
+					Items: &types.Items{
+						Type: &stringType,
+					},
+				},
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is a user defined function with array items as output."; return &s }(),
 				},
 			},
 		},
@@ -193,10 +257,20 @@ func TestCreateFile(t *testing.T) {
 		},
 		Outputs: []types.Output{
 			{
-				Name: "test_output",
-				Type: "#/definitions/positiveInt",
+				Name: "pint",
+				Type: positiveIntType,
 				Metadata: &types.Metadata{
-					Description: &outputDescription,
+					Description: func() *string { s := "This is an output with uddt."; return &s }(),
+				},
+			},
+			{
+				Name: "pint_array",
+				Type: "array",
+				Items: &types.Items{
+					Ref: &positiveIntType,
+				},
+				Metadata: &types.Metadata{
+					Description: func() *string { s := "This is an output with uddt array items."; return &s }(),
 				},
 			},
 		},
