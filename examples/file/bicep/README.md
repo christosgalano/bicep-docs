@@ -56,9 +56,9 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## User Defined Functions (UDFs)
 
-| Name | Description |
-| --- | --- |
-| double | Doubles a positive integer. |
+| Name | Description | Output Type |
+| --- | --- | --- |
+| double | Doubles a positive integer. | positiveInt (uddt) |
 
 ## Variables
 
