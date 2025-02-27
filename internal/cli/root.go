@@ -33,7 +33,7 @@ const (
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Version: "v1.3.2",
+	Version: "v1.4.0",
 	Use:     "bicep-docs",
 	Short:   "bicep-docs is a command-line tool that generates documentation for Bicep templates.",
 	Long: `bicep-docs is a command-line tool that generates documentation for Bicep templates.
