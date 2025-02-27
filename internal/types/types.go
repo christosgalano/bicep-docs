@@ -22,6 +22,13 @@ type Metadata struct {
 	Description *string `json:"description"`
 }
 
+// Items represents the array item type information.
+// The type field can be either a type or a $ref.
+type Items struct {
+	Type *string `json:"type"`
+	Ref  *string `json:"$ref"`
+}
+
 // Module is a struct that contains the information about a module.
 // A module has a symbolic name, a source, and an optional description.
 //
@@ -52,47 +59,53 @@ type Resource struct {
 }
 
 // Parameter is a struct that contains the information about a parameter.
-// A parameter has a name, type, an optional default value, nullable flag, and an optional metadata part.
+// A parameter has a name, type, an optional default value, items (for array types), nullable flag, and an optional metadata part.
 //
 // The name is the name of the parameter.
 // The type is the type of the parameter (e.g. "string" or even a user defined type).
 // The default value is the optional default value of the parameter.
+// The items part is the optional items part of the parameter (for array types).
 // The nullable flag indicates if the parameter can be null.
 // The metadata part is the optional metadata part of the parameter (just the description).
 type Parameter struct {
 	Name         string    `json:"-"`
 	Type         string    `json:"-"`
 	DefaultValue any       `json:"defaultValue"`
+	Items        *Items    `json:"items"`
 	Nullable     bool      `json:"nullable"`
 	Metadata     *Metadata `json:"metadata"`
 }
 
 // UserDefinedDataType (UDDT) is a struct that contains the information about a user defined data type.
-// A user defined data type has a name, type, nullable flag, list of properties, and an optional metadata part.
+// A user defined data type has a name, type, items (for array types), nullable flag, properties, and an optional metadata part.
 //
 // The name is the name of the user defined data type.
 // The type is the type of the user defined data type (e.g. "object" or even including other user defined types).
+// The items part is the optional items part of the user defined data type (for array types).
 // The nullable flag indicates if the user defined data type can be null.
 // The properties are the properties of the user defined data type (e.g. fields in an object).
 // The metadata part is the optional metadata part of the user defined data type (just the description).
 type UserDefinedDataType struct {
 	Name       string                        `json:"-"`
 	Type       string                        `json:"-"`
+	Items      *Items                        `json:"items"`
 	Nullable   bool                          `json:"nullable"`
 	Properties []UserDefinedDataTypeProperty `json:"-"`
 	Metadata   *Metadata                     `json:"metadata"`
 }
 
 // UserDefinedDataTypeProperty is a struct that contains the information about a property of a user defined data type.
-// A property has a name, type, nullable flag, and an optional metadata part.
+// A property has a name, type, items (for array types), nullable flag, and an optional metadata part.
 //
 // The name is the name of the property.
 // The type is the type of the property (e.g. "string" or even a user defined type).
+// The items part is the optional items part of the property (for array types).
 // The nullable flag indicates if the property can be null.
 // The metadata part is the optional metadata part of the property (just the description).
 type UserDefinedDataTypeProperty struct {
 	Name     string    `json:"-"`
 	Type     string    `json:"-"`
+	Items    *Items    `json:"items"`
 	Nullable bool      `json:"nullable"`
 	Metadata *Metadata `json:"metadata"`
 }
@@ -124,15 +137,17 @@ type Variable struct {
 }
 
 // Output is a struct that contains the information about an output.
-// An output has a name, type, nullable flag, and an optional metadata part.
+// An output has a name, type, items (for array types), nullable flag, and an optional metadata part.
 //
 // The name is the name of the output.
 // The type is the type of the output (e.g. "string").
+// The items part is the optional items part of the output (for array types).
 // The nullable flag indicates if the output can be null.
 // The metadata part is the optional metadata part of the output (just the description).
 type Output struct {
 	Name     string    `json:"-"`
 	Type     string    `json:"-"`
+	Items    *Items    `json:"items"`
 	Nullable bool      `json:"nullable"`
 	Metadata *Metadata `json:"metadata"`
 }

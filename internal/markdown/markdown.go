@@ -190,7 +190,7 @@ func generateParametersSection(template *types.Template) (string, error) {
 
 		rows[i] = []string{
 			parameter.Name,
-			extractType(parameter.Type),
+			extractType(parameter.Type, parameter.Items),
 			extractDescription(parameter.Metadata),
 			defaultValue,
 		}
@@ -209,7 +209,7 @@ func generateOutputsSection(template *types.Template) (string, error) { //nolint
 	headers := []string{"Name", "Type", "Description"}
 	rows := make([][]string, len(template.Outputs))
 	for i, output := range template.Outputs {
-		rows[i] = []string{output.Name, extractType(output.Type), extractDescription(output.Metadata)}
+		rows[i] = []string{output.Name, extractType(output.Type, output.Items), extractDescription(output.Metadata)}
 	}
 	return NewMarkdownTable("Outputs", H2, headers, rows).String(), nil
 }
@@ -235,7 +235,7 @@ func generateUserDefinedDataTypesSection(template *types.Template) (string, erro
 
 		rows[i] = []string{
 			dataType.Name,
-			extractType(dataType.Type),
+			extractType(dataType.Type, dataType.Items),
 			extractDescription(dataType.Metadata),
 			propertiesColumn,
 		}
@@ -252,7 +252,7 @@ func generateUserDefinedDataTypesSection(template *types.Template) (string, erro
 		for i, property := range dataType.Properties {
 			propertyRows[i] = []string{
 				property.Name,
-				extractType(property.Type),
+				extractType(property.Type, property.Items),
 				extractDescription(property.Metadata),
 			}
 		}
@@ -270,10 +270,14 @@ func generateUserDefinedFunctionsSection(template *types.Template) (string, erro
 	if len(template.UserDefinedFunctions) == 0 {
 		return "", nil
 	}
-	headers := []string{"Name", "Description"}
+	headers := []string{"Name", "Description", "Output Type"}
 	rows := make([][]string, len(template.UserDefinedFunctions))
 	for i, function := range template.UserDefinedFunctions {
-		rows[i] = []string{function.Name, extractDescription(function.Metadata)}
+		rows[i] = []string{
+			function.Name,
+			extractDescription(function.Metadata),
+			extractType(function.Output.Type, function.Output.Items),
+		}
 	}
 	return NewMarkdownTable("User Defined Functions (UDFs)", H2, headers, rows).String(), nil
 }
@@ -392,11 +396,32 @@ func readFileContent(filename string) (string, error) {
 
 // extractType extracts the type from a type string.
 // If the type is a user defined data type, it returns the name of it.
-func extractType(t string) string {
+// If the type is array and items are provided, it returns the proper array type notation.
+func extractType(t string, items *types.Items) string {
+	// Handle UDDTs
 	if strings.HasPrefix(t, "#/definitions/") {
 		split := strings.Split(t, "/")
 		return split[len(split)-1] + " (uddt)"
 	}
+
+	// Handle arrays with item type info
+	if t == "array" && items != nil {
+		// Handle items with type
+		if items.Type != nil {
+			return *items.Type + "[]"
+		}
+
+		// Handle items with ref (UDDT)
+		if items.Ref != nil {
+			ref := *items.Ref
+			if strings.HasPrefix(ref, "#/definitions/") {
+				split := strings.Split(ref, "/")
+				return split[len(split)-1] + "[] (uddt)"
+			}
+			return ref + "[]"
+		}
+	}
+
 	return t
 }
 
