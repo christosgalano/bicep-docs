@@ -1,12 +1,11 @@
 module github.com/christosgalano/bicep-docs
 
 go 1.23
-
 require (
 	github.com/google/uuid v1.6.0
 	github.com/json-iterator/go v1.1.12
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 )
 
 require (
