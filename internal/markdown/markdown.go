@@ -160,7 +160,7 @@ func generateParametersSection(template *types.Template) (string, error) {
 	}
 
 	re := regexp.MustCompile(`([^ ]):([^ ])|([^ ]),([^ ])`)
-	headers := []string{"Name", "Type", "Description", "Default"}
+	headers := []string{"Name", "Status", "Type", "Description", "Default"}
 	rows := make([][]string, len(template.Parameters))
 
 	for i, parameter := range template.Parameters {
@@ -188,8 +188,11 @@ func generateParametersSection(template *types.Template) (string, error) {
 			defaultValue = ""
 		}
 
+		parameterStatus := parameter.GetStatus()
+
 		rows[i] = []string{
 			parameter.Name,
+			parameterStatus.String(),
 			extractType(parameter.Type, parameter.Items),
 			extractDescription(parameter.Metadata),
 			defaultValue,
@@ -316,8 +319,7 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Required parameters (without a default value).
 	builder.WriteString("    // Required parameters\n")
 	for _, parameter := range template.Parameters {
-		// A parameter is required if it has no default value and is not nullable.
-		if parameter.DefaultValue == nil && !parameter.Nullable {
+		if parameter.IsRequired() {
 			builder.WriteString(fmt.Sprintf("    %s:\n", parameter.Name))
 		}
 	}
@@ -325,7 +327,7 @@ func generateUsageSection(template *types.Template) (string, error) {
 	// Optional parameters (with a default value).
 	builder.WriteString("\n    // Optional parameters\n")
 	for _, parameter := range template.Parameters {
-		if parameter.DefaultValue == nil && !parameter.Nullable {
+		if parameter.IsRequired() {
 			continue
 		}
 		jsonValue, err := json.MarshalIndent(parameter.DefaultValue, "    ", "  ")

@@ -40,11 +40,11 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| test_parameter1 | string | This is a test parameter. | "test" |
-| test_parameter2 | object | This is a test parameter. | {} |
-| test_parameter3 | object | This is a test parameter. | {"key1": "value1"} |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| test_parameter1 | Optional | string | This is a test parameter. | "test" |
+| test_parameter2 | Optional | object | This is a test parameter. | {} |
+| test_parameter3 | Optional | object | This is a test parameter. | {"key1": "value1"} |
 
 ## Variables
 

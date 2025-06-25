@@ -2,6 +2,6 @@
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| test_parameter | string | This is a test parameter. | "test" |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| test_parameter | Optional | string | This is a test parameter. | "test" |
