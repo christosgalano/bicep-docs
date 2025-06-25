@@ -95,3 +95,28 @@ brews:
       name: christosgalano
       email: christosgalanop@gmail.com
     install: bin.install "bicep-docs"
+
+chocolateys:
+  - name: bicep-docs
+    ids: [bicep-docs]
+    package_source_url: https://github.com/christosgalano/bicep-docs-choco
+    owners: Christos Galanopoulos
+    title: bicep-docs
+    authors: Christos Galanopoulos
+    project_url: https://github.com/christosgalano/bicep-docs
+
+    license_url: https://github.com/christosgalano/bicep-docs/blob/main/LICENSE
+    project_source_url: https://github.com/christosgalano/bicep-docs
+    docs_url: https://github.com/christosgalano/bicep-docs/blob/main/README.md
+    bug_tracker_url: https://github.com/christosgalano/bicep-docs/issues
+    release_notes: 'https://github.com/christosgalano/bicep-docs/releases/tag/v{{ .Version }}'
+
+    tags: 'bicep azure docs documentation'
+    summary: Command-line tool to generate documentation for Bicep templates.
+    description: |
+      Bicep Docs is a CLI tool to generate documentation for Bicep templates.
+      See https://github.com/christosgalano/bicep-docs for more information.
+
+    api_key: '{{ .Env.CHOCOLATEY_API_KEY }}'
+    source_repo: 'https://push.chocolatey.org/'
+    skip_publish: false

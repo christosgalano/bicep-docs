@@ -6,10 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  validate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,13 +26,30 @@ jobs:
             exit 1
           fi
 
+  release:
+    runs-on: windows-latest
+    needs: validate
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --force --tags
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: stable
 
+      - name: Verify Chocolatey installation
+        run: choco --version
+
       - name: Install syft
-        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        run: choco install syft -y
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -44,3 +59,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
