@@ -41,14 +41,14 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| required | string | This is a required parameter. |  |
-| nullable | string | This is a nullable parameter. | null |
-| optional | string | This is an optional parameter. | "test" |
-| string_array | string[] | This is a string array parameter. | [] |
-| pint_array | positive_int[] (uddt) | This is a positive int custom type array parameter. |  |
-| simple_array | array | This is simple array parameter. |  |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| required | Required | string | This is a required parameter. |  |
+| nullable | Optional | string | This is a nullable parameter. | null |
+| optional | Optional | string | This is an optional parameter. | "test" |
+| string_array | Optional | string[] | This is a string array parameter. | [] |
+| pint_array | Required | positive_int[] (uddt) | This is a positive int custom type array parameter. |  |
+| simple_array | Required | array | This is simple array parameter. |  |
 
 ## User Defined Data Types (UDDTs)
 

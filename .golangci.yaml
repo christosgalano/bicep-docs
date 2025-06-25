@@ -1,192 +1,124 @@
-# Base file: https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
+version: '2'
 
 run:
-  timeout: 5m
   tests: true
 
 output:
-  # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
   formats:
-    - format: colored-line-number
+    text:
       path: stdout
-  print-issued-lines: false
-  print-linter-name: true
-  sort-results: true
-
-linters-settings:
-  errcheck:
-    # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-    check-type-assertions: true
-
-    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`.
-    check-blank: true
-
-    # List of functions to exclude from checking, where each entry is a single function to exclude.
-    # See https://github.com/kisielk/errcheck#excluding-functions for details.
-    exclude-functions: []
-
-  funlen:
-    # Checks the number of lines in a function.
-    # If lower than 0, disable the check.
-    lines: -1
-
-    # Checks the number of statements in a function.
-    # If lower than 0, disable the check.
-    statements: 50
-
-    # Ignore comments when counting lines.
-    ignore-comments: true
-
-  goconst:
-    # Minimal length of string constant.
-    min-len: 2
-
-    # Minimum occurrences of constant string count to trigger issue.
-    min-occurrences: 2
-
-    # Ignore test files.
-    ignore-tests: false
-
-    # Search also for duplicated numbers.
-    numbers: true
-
-  gocritic:
-    # Which checks should be enabled; can't be combined with 'disabled-checks'.
-    # See https://go-critic.github.io/overview#checks-overview.
-    # enabled-checks:
-
-    # Which checks should be disabled; can't be combined with 'enabled-checks'.
-    # disabled-checks: []
-
-    # See https://github.com/go-critic/go-critic#usage -> section "Tags".
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
-      - opinionated
-
-    # Settings passed to gocritic.
-    # The settings key is the name of a supported gocritic checker.
-    # The list of supported checkers can be find in https://go-critic.github.io/overview.
-    settings:
-      captLocal:
-        # Whether to restrict checker to params only.
-        paramsOnly: false
-      elseif:
-        # Whether to skip balanced if-else pairs.
-        skipBalanced: false
-      hugeParam:
-        # Size in bytes that makes the warning trigger.
-        sizeThreshold: 70
-      ifElseChain:
-        # Min number of if-else blocks that makes the warning trigger.
-        minThreshold: 2
-      nestingReduce:
-        # Min number of statements inside a branch to trigger a warning.
-        bodyWidth: 5
-
-  gocyclo:
-    # Minimal code complexity to report.
-    min-complexity: 12
-
-  godot:
-    # Comments to be checked: `declarations`, `toplevel`, or `all`.
-    scope: declarations
-
-    # List of regexps for excluding particular comment lines from check.
-    exclude:
-      # Exclude todo comments.
-      - '^TODO:'
-
-    # Check that each sentence ends with a period.
-    period: true
-
-    # Check that each sentence starts with a capital letter.
-    capital: true
-
-  gofmt:
-    # Simplify code: gofmt with `-s` option.
-    simplify: true
-
-    # Apply the rewrite rules to the source before reformatting.
-    rewrite-rules:
-      - pattern: 'interface{}'
-        replacement: 'any'
-      - pattern: 'a[b:len(a)]'
-        replacement: 'a[b:]'
-
-  gosec:
-    # To select a subset of rules to run.
-    # Available rules: https://github.com/securego/gosec#available-rules
-    includes: []
-
-    # To specify a set of rules to explicitly exclude.
-    excludes:
-      - G204 # Audit use of command execution
-      - G304 # File path provided as taint input
-
-    # Exclude generated files.
-    exclude-generated: false
-
-    # Filter out the issues with a lower severity than the given value.
-    # Valid options are: low, medium, high.
-    # Default: low
-    severity: low
-
-    # Filter out the issues with a lower confidence than the given value.
-    # Valid options are: low, medium, high.
-    confidence: low
-
-  govet:
-    # Report about shadowed variables.
-    disable:
-      - shadow
-
-  lll:
-    # Max line length, lines longer will be reported.
-    # '\t' is counted as 1 character by default, and can be changed with the tab-width option.
-    line-length: 200
-
-    # Tab width in spaces.
-    tab-width: 1
-
-  revive:
-    rules:
-      - name: unexported-return
-        disabled: true
-      - name: unused-parameter
+      print-linter-name: true
+      print-issued-lines: false
 
 linters:
-  # Disable all linters.
-  disable-all: true
-
-  # Enable specific linters.
+  default: none
   enable:
-    - gofmt
-    - govet
-    - gosec
-    - gocyclo
-    - gocritic
-    - goimports
-    - godot
-    - errcheck
-    - goconst
-    - funlen
-    - lll
-    - revive
-    - dogsled
     - bodyclose
-    - errorlint
     - copyloopvar
+    - dogsled
+    - errcheck
+    - errorlint
+    - funlen
     - gocheckcompilerdirectives
-    - mnd
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
     - goprintffuncname
-    - gosimple
+    - gosec
+    - govet
     - ineffassign
-    - stylecheck
+    - lll
+    - mnd
+    - nolintlint
+    - revive
+    - staticcheck
     - unconvert
     - unparam
     - unused
     - whitespace
-    - nolintlint
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    funlen:
+      lines: -1
+      statements: 50
+      ignore-comments: true
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+      numbers: true
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+        - experimental
+        - opinionated
+      settings:
+        captLocal:
+          paramsOnly: false
+        elseif:
+          skipBalanced: false
+        hugeParam:
+          sizeThreshold: 70
+        ifElseChain:
+          minThreshold: 2
+        nestingReduce:
+          bodyWidth: 5
+    gocyclo:
+      min-complexity: 12
+    godot:
+      scope: declarations
+      exclude:
+        - '^TODO:'
+      capital: true
+      period: true
+    gosec:
+      excludes:
+        - G204
+        - G304
+      severity: low
+      confidence: low
+    govet:
+      disable:
+        - shadow
+    lll:
+      line-length: 200
+      tab-width: 1
+    revive:
+      rules:
+        - name: unexported-return
+          disabled: true
+        - name: unused-parameter
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+        - pattern: a[b:len(a)]
+          replacement: a[b:]
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

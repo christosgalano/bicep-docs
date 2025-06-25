@@ -58,6 +58,19 @@ type Resource struct {
 	Description  string
 }
 
+// ParameterStatus is an enum that represents the status of a parameter.
+// The status can be either "Required" or "Optional".
+type ParameterStatus string
+
+const (
+	RequiredParameterStatus ParameterStatus = "Required" // Required indicates that the parameter is required
+	OptionalParameterStatus ParameterStatus = "Optional" // Optional indicates that the parameter is optional
+)
+
+func (ps ParameterStatus) String() string {
+	return string(ps)
+}
+
 // Parameter is a struct that contains the information about a parameter.
 // A parameter has a name, type, an optional default value, items (for array types), nullable flag, and an optional metadata part.
 //
@@ -74,6 +87,22 @@ type Parameter struct {
 	Items        *Items    `json:"items"`
 	Nullable     bool      `json:"nullable"`
 	Metadata     *Metadata `json:"metadata"`
+}
+
+// IsRequired checks if the parameter is required.
+// A parameter is considered required if it has no default value and is not nullable.
+func (p *Parameter) IsRequired() bool {
+	return p.DefaultValue == nil && !p.Nullable
+}
+
+// GetStatus returns the status of the parameter.
+// If the parameter is required, it returns RequiredParameterStatus.
+// If the parameter is optional, it returns OptionalParameterStatus.
+func (p *Parameter) GetStatus() ParameterStatus {
+	if p.IsRequired() {
+		return RequiredParameterStatus
+	}
+	return OptionalParameterStatus
 }
 
 // UserDefinedDataType (UDDT) is a struct that contains the information about a user defined data type.
