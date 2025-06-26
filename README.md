@@ -6,6 +6,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/christosgalano/bicep-docs.svg)](https://pkg.go.dev/github.com/christosgalano/bicep-docs)
 [![Github Downloads](https://img.shields.io/github/downloads/christosgalano/bicep-docs/total.svg)](https://github.com/christosgalano/bicep-docs/releases)
 
+![bicep-docs](assets/images/main-extra-small.png)
+
 ## Table of contents
 
 - [Description](#description)
@@ -26,6 +28,12 @@
 ```bash
 brew tap christosgalano/christosgalano
 brew install bicep-docs
+```
+
+### Chocolatey
+
+```bash
+choco install bicep-docs
 ```
 
 ### Go
