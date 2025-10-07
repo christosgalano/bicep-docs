@@ -52,8 +52,8 @@ To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](htt
 
 | CLI   | Minimum Required Version |
 | ----- | ------------------------ |
-| Azure | 2.69.0                   |
-| Bicep | 0.33.0                   |
+| Azure | 2.77.0                   |
+| Bicep | 0.38.0                   |
 
 ## Usage
 
@@ -82,6 +82,8 @@ The order of the sections is respected when including them.
 When excluding sections, the result will be the default sections minus the excluded ones (e.g. `--exclude-sections description,usage` will include `modules,resources,parameters,udfs,uddts,variables,outputs` in that order).
 
 Both arguments cannot be provided at the same time, unless the `--include-sections` argument is the same as the default sections (e.g. `--include-sections description,usage,modules,resources,parameters,udfs,uddts,variables,outputs`).
+
+The `--show-all-decorators` flag can be used to include additional columns in the documentation tables showing constraint information from Bicep decorators (allowed values, min/max constraints, exportable status, etc.). By default, these details are hidden to keep the documentation concise.
 
 ### Example usage
 
@@ -113,6 +115,12 @@ Parse a Bicep file and generate a README.md including only the resources and mod
 
 ```bash
 bicep-docs ---input main.bicep --include-sections resources,modules
+```
+
+Parse a Bicep file and generate comprehensive documentation with all decorator information:
+
+```bash
+bicep-docs --input main.bicep --show-all-decorators
 ```
 
 More examples can be found [here](examples).
