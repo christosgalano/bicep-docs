@@ -64,11 +64,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
-  update-choco:
-    uses: christosgalano/bicep-docs-choco/.github/workflows/update-version.yaml@main
-    needs: [release, validate]
-    permissions:
-      contents: write
-    with:
-      version: ${{ needs.validate.outputs.cli_version }}
