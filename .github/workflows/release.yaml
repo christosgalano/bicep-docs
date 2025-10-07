@@ -68,5 +68,7 @@ jobs:
   update-choco:
     uses: christosgalano/bicep-docs-choco/.github/workflows/update-version.yaml@main
     needs: [release, validate]
+    permissions:
+      contents: write
     with:
       version: ${{ needs.validate.outputs.cli_version }}
