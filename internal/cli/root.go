@@ -14,11 +14,12 @@ import (
 
 // CLI flags.
 var (
-	input           string
-	output          string
-	verbose         bool
-	includeSections string
-	excludeSections string
+	input             string
+	output            string
+	verbose           bool
+	includeSections   string
+	excludeSections   string
+	showAllDecorators bool
 )
 
 // CLI variables.
@@ -33,7 +34,7 @@ const (
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Version: "v1.5.0",
+	Version: "v1.6.0",
 	Use:     "bicep-docs",
 	Short:   "bicep-docs is a command-line tool that generates documentation for Bicep templates.",
 	Long: `bicep-docs is a command-line tool that generates documentation for Bicep templates.
@@ -47,7 +48,7 @@ Azure CLI or Bicep CLI need to be installed.
 `,
 	//revive:disable:unused-parameter
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := GenerateDocs(input, output, verbose, sections); err != nil {
+		if err := GenerateDocs(input, output, verbose, sections, showAllDecorators); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -111,6 +112,14 @@ func init() {
 		"",
 		"comma-separated list of sections to exclude from the default output; "+
 			"available sections: description, usage, modules, resources, parameters, uddts, udfs, variables, outputs",
+	)
+
+	// show-all-decorators - optional
+	rootCmd.Flags().BoolVar(
+		&showAllDecorators,
+		"show-all-decorators",
+		false,
+		"show all decorator columns (exportable, constraints) in the output tables",
 	)
 
 	rootCmd.PreRunE = func(cmd *cobra.Command, args []string) error {

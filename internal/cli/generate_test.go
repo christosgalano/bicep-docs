@@ -12,42 +12,46 @@ import (
 
 func TestGenerateDocs(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		output   string
-		verbose  bool
-		sections []types.Section
-		expected string
+		name              string
+		input             string
+		output            string
+		verbose           bool
+		sections          []types.Section
+		showAllDecorators bool
+		expected          string
 	}{
 		{
-			name:     "directory_input",
-			input:    "./testdata",
-			output:   "",
-			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
-			expected: "",
+			name:              "directory_input",
+			input:             "./testdata",
+			output:            "",
+			verbose:           true,
+			sections:          []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
+			showAllDecorators: false,
+			expected:          "",
 		},
 		{
-			name:     "file_input",
-			input:    "./testdata/main.bicep",
-			output:   "./testdata/README.md",
-			verbose:  false,
-			sections: []types.Section{types.ModulesSection, types.ParametersSection},
-			expected: "",
+			name:              "file_input",
+			input:             "./testdata/main.bicep",
+			output:            "./testdata/README.md",
+			verbose:           false,
+			sections:          []types.Section{types.ModulesSection, types.ParametersSection},
+			showAllDecorators: false,
+			expected:          "",
 		},
 		{
-			name:     "non_existent_input",
-			input:    "./path/to/non-existent",
-			output:   "",
-			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
-			expected: "no such file or directory \"./path/to/non-existent\"",
+			name:              "non_existent_input",
+			input:             "./path/to/non-existent",
+			output:            "",
+			verbose:           true,
+			sections:          []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
+			showAllDecorators: false,
+			expected:          "no such file or directory \"./path/to/non-existent\"",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := GenerateDocs(tt.input, tt.output, tt.verbose, tt.sections)
+			err := GenerateDocs(tt.input, tt.output, tt.verbose, tt.sections, tt.showAllDecorators)
 			if tt.expected != "" {
 				if err == nil {
 					t.Errorf("GenerateDocs() expected error but got none")
@@ -63,24 +67,26 @@ func TestGenerateDocs(t *testing.T) {
 
 func Test_generateDocsFromDirectory(t *testing.T) {
 	tests := []struct {
-		name     string
-		dirPath  string
-		verbose  bool
-		sections []types.Section
-		expected string
+		name              string
+		dirPath           string
+		verbose           bool
+		sections          []types.Section
+		showAllDecorators bool
+		expected          string
 	}{
 		{
-			name:     "valid_directory",
-			dirPath:  "./testdata",
-			verbose:  true,
-			sections: []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
-			expected: "",
+			name:              "valid_directory",
+			dirPath:           "./testdata",
+			verbose:           true,
+			sections:          []types.Section{types.DescriptionSection, types.ParametersSection, types.VariablesSection},
+			showAllDecorators: false,
+			expected:          "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := generateDocsFromDirectory(tt.dirPath, tt.verbose, tt.sections)
+			err := generateDocsFromDirectory(tt.dirPath, tt.verbose, tt.sections, tt.showAllDecorators)
 			if tt.expected != "" {
 				if err == nil {
 					t.Errorf("generateDocsFromDirectory() expected error but got none")
@@ -96,26 +102,28 @@ func Test_generateDocsFromDirectory(t *testing.T) {
 
 func Test_generateDocsFromBicepFile(t *testing.T) {
 	tests := []struct {
-		name         string
-		bicepFile    string
-		markdownFile string
-		verbose      bool
-		sections     []types.Section
-		expected     string
+		name              string
+		bicepFile         string
+		markdownFile      string
+		verbose           bool
+		sections          []types.Section
+		showAllDecorators bool
+		expected          string
 	}{
 		{
-			name:         "valid_file",
-			bicepFile:    "./testdata/main.bicep",
-			markdownFile: "./testdata/README.md",
-			verbose:      true,
-			sections:     []types.Section{types.ModulesSection, types.ParametersSection},
-			expected:     "",
+			name:              "valid_file",
+			bicepFile:         "./testdata/main.bicep",
+			markdownFile:      "./testdata/README.md",
+			verbose:           true,
+			sections:          []types.Section{types.ModulesSection, types.ParametersSection},
+			showAllDecorators: false,
+			expected:          "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := generateDocsFromBicepFile(tt.bicepFile, tt.markdownFile, tt.verbose, tt.sections)
+			err := generateDocsFromBicepFile(tt.bicepFile, tt.markdownFile, tt.verbose, tt.sections, tt.showAllDecorators)
 			if tt.expected != "" {
 				if err == nil {
 					t.Errorf("generateDocsFromBicepFile() expected error but got none")
@@ -178,7 +186,7 @@ func BenchmarkGenerateDocs(b *testing.B) {
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				err := GenerateDocs(tempDir, "", false, sections)
+				err := GenerateDocs(tempDir, "", false, sections, false)
 				if err != nil {
 					b.Fatalf("GenerateDocs() failed: %v", err)
 				}

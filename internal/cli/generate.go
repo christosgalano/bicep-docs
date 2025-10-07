@@ -25,7 +25,9 @@ import (
 // The sections slice contains the sections that should be included in the documentation.
 //
 // If verbose is true, additional information will be printed during the generation process.
-func GenerateDocs(input, output string, verbose bool, sections []types.Section) error {
+//
+// If showAllDecorators is true, all decorator columns will be included in the output tables.
+func GenerateDocs(input, output string, verbose bool, sections []types.Section, showAllDecorators bool) error {
 	f, err := os.Stat(input)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -35,9 +37,9 @@ func GenerateDocs(input, output string, verbose bool, sections []types.Section) 
 	}
 
 	if f.IsDir() {
-		return generateDocsFromDirectory(input, verbose, sections)
+		return generateDocsFromDirectory(input, verbose, sections, showAllDecorators)
 	}
-	return generateDocsFromBicepFile(input, output, verbose, sections)
+	return generateDocsFromBicepFile(input, output, verbose, sections, showAllDecorators)
 }
 
 // generateDocsFromDirectory processes the directory and its subdirectories recursively.
@@ -45,7 +47,7 @@ func GenerateDocs(input, output string, verbose bool, sections []types.Section) 
 // For each 'main.bicep' file, it creates/updates a 'README.md' file in the same directory.
 //
 //nolint:mnd // Sensible default.
-func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section) error {
+func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Section, showAllDecorators bool) error {
 	g := new(errgroup.Group)
 	g.SetLimit(runtime.GOMAXPROCS(0) * 10)
 
@@ -58,7 +60,7 @@ func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Se
 			// Create a README.md file in the same directory as the main.bicep file
 			markdownFile := filepath.Join(filepath.Dir(path), "README.md")
 			g.Go(func() error {
-				return generateDocsFromBicepFile(path, markdownFile, verbose, sections)
+				return generateDocsFromBicepFile(path, markdownFile, verbose, sections, showAllDecorators)
 			})
 		}
 		return nil
@@ -84,7 +86,7 @@ func generateDocsFromDirectory(dirPath string, verbose bool, sections []types.Se
 // and the provided section, while also deleting the ARM template.
 //
 // If the Markdown file already exists, it will be overwritten.
-func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool, sections []types.Section) error {
+func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool, sections []types.Section, showAllDecorators bool) error {
 	// Build Bicep template into ARM template
 	armFile, err := template.BuildBicepTemplate(bicepFile)
 	if err != nil {
@@ -100,7 +102,7 @@ func generateDocsFromBicepFile(bicepFile, markdownFile string, verbose bool, sec
 	}
 
 	// Create/Update Markdown file
-	if err := markdown.CreateFile(markdownFile, tmpl, verbose, sections); err != nil {
+	if err := markdown.CreateFile(markdownFile, tmpl, verbose, sections, showAllDecorators); err != nil {
 		return fmt.Errorf("error processing %s: %w", bicepFile, err)
 	}
 
