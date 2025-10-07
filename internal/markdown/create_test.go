@@ -281,8 +281,9 @@ func TestCreateFile(t *testing.T) {
 	}
 
 	type args struct {
-		filename string
-		template *types.Template
+		filename          string
+		template          *types.Template
+		showAllDecorators bool
 	}
 	tests := []struct {
 		name      string
@@ -293,8 +294,9 @@ func TestCreateFile(t *testing.T) {
 		{
 			name: "basic template",
 			args: args{
-				filename: "basic.md",
-				template: basicTemplate,
+				filename:          "basic.md",
+				template:          basicTemplate,
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/basic.md",
@@ -302,8 +304,9 @@ func TestCreateFile(t *testing.T) {
 		{
 			name: "extended template",
 			args: args{
-				filename: "extended.md",
-				template: extendedTemplate,
+				filename:          "extended.md",
+				template:          extendedTemplate,
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/extended.md",
@@ -329,6 +332,7 @@ func TestCreateFile(t *testing.T) {
 						},
 					},
 				},
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/multiline_markup.md",
@@ -343,6 +347,7 @@ func TestCreateFile(t *testing.T) {
 						Description: &templateDescription,
 					},
 				},
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/no_name.md",
@@ -357,6 +362,7 @@ func TestCreateFile(t *testing.T) {
 						Name: &templateName,
 					},
 				},
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/no_description.md",
@@ -368,6 +374,7 @@ func TestCreateFile(t *testing.T) {
 				template: &types.Template{
 					FileName: "test.bicep",
 				},
+				showAllDecorators: false,
 			},
 			wantErr:   false,
 			checkFile: "./testdata/no_metadata.md",
@@ -375,16 +382,18 @@ func TestCreateFile(t *testing.T) {
 		{
 			name: "given path is a directory",
 			args: args{
-				filename: "testdata",
-				template: nil,
+				filename:          "testdata",
+				template:          nil,
+				showAllDecorators: false,
 			},
 			wantErr: true,
 		},
 		{
 			name: "nil template",
 			args: args{
-				filename: "nil_template.md",
-				template: nil,
+				filename:          "nil_template.md",
+				template:          nil,
+				showAllDecorators: false,
 			},
 			wantErr: true,
 		},
@@ -401,7 +410,7 @@ func TestCreateFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Call CreateFile with the filename in the temporary directory
 			filename := filepath.Join(tempDir, tt.args.filename)
-			if err := CreateFile(filename, tt.args.template, false, defaultSections); (err != nil) != tt.wantErr {
+			if err := CreateFile(filename, tt.args.template, false, defaultSections, tt.args.showAllDecorators); (err != nil) != tt.wantErr {
 				t.Errorf("CreateFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
