@@ -70,37 +70,37 @@ jobs:
       if: github.event_name == 'pull_request'
       run: task benchmark
 
-  update-readme:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: test
-    permissions:
-      contents: write
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+  # update-readme:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   needs: test
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v5
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
+  #   - name: Setup Go
+  #     uses: actions/setup-go@v5
+  #     with:
+  #       go-version-file: 'go.mod'
 
-    - name: Check if README changed
-      id: readme
-      run: |
-        ./.github/scripts/coverage-badge.sh
-        git config --local user.name 'github-actions[bot]'
-        git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-        git diff --quiet --exit-code -- README.md || UPDATED=true
-        if [[ "$UPDATED" == "true" ]]; then
-          git add README.md
-          git commit -m "Update code coverage badge"
-          echo "changed=true" >> $GITHUB_OUTPUT
-        fi
+  #   - name: Check if README changed
+  #     id: readme
+  #     run: |
+  #       ./.github/scripts/coverage-badge.sh
+  #       git config --local user.name 'github-actions[bot]'
+  #       git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+  #       git diff --quiet --exit-code -- README.md || UPDATED=true
+  #       if [[ "$UPDATED" == "true" ]]; then
+  #         git add README.md
+  #         git commit -m "Update code coverage badge"
+  #         echo "changed=true" >> $GITHUB_OUTPUT
+  #       fi
 
-    - name: Push updated README
-      if: steps.readme.outputs.changed == 'true'
-      uses: ad-m/github-push-action@master
-      with:
-        branch: ${{ github.ref }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: Push updated README
+  #     if: steps.readme.outputs.changed == 'true'
+  #     uses: ad-m/github-push-action@master
+  #     with:
+  #       branch: ${{ github.ref }}
+  #       github_token: ${{ secrets.GITHUB_TOKEN }}
