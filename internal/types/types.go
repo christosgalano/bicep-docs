@@ -11,15 +11,18 @@ import (
 )
 
 // Metadata is a struct that contains the metadata part of a parameter, an output, or the template itself.
-// The metadata part consists of two optional fields: name and description.
+// The metadata part consists of three optional fields: name, description, and export flag.
 //
 // A name can be either a metadata item (metadata name = '...') for the template, or a parameter/output name.
 //
 // A description can be either an annotation (@description('...') | @sys.description('...'))
 // or a metadata item (metadata description = '...').
+//
+// The export flag can be set using the @export() annotation or the metadata item (metadata __bicep_export! = true).
 type Metadata struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+	Export      *bool   `json:"__bicep_export!,omitempty"`
 }
 
 // Items represents the array item type information.
@@ -72,21 +75,21 @@ func (ps ParameterStatus) String() string {
 }
 
 // Parameter is a struct that contains the information about a parameter.
-// A parameter has a name, type, an optional default value, items (for array types), nullable flag, and an optional metadata part.
-//
-// The name is the name of the parameter.
-// The type is the type of the parameter (e.g. "string" or even a user defined type).
-// The default value is the optional default value of the parameter.
-// The items part is the optional items part of the parameter (for array types).
-// The nullable flag indicates if the parameter can be null.
-// The metadata part is the optional metadata part of the parameter (just the description).
+// A parameter has a name, type, an optional default value, items (for array types), nullable flag,
+// optional constraints (allowed values, minLength, maxLength, minValue, maxValue)
+// and an optional metadata part.
 type Parameter struct {
-	Name         string    `json:"-"`
-	Type         string    `json:"-"`
-	DefaultValue any       `json:"defaultValue"`
-	Items        *Items    `json:"items"`
-	Nullable     bool      `json:"nullable"`
-	Metadata     *Metadata `json:"metadata"`
+	Name          string    `json:"-"`
+	Type          string    `json:"-"`
+	DefaultValue  any       `json:"defaultValue"`
+	Items         *Items    `json:"items"`
+	Nullable      bool      `json:"nullable"`
+	AllowedValues []any     `json:"allowedValues,omitempty"`
+	MinLength     *int      `json:"minLength,omitempty"`
+	MaxLength     *int      `json:"maxLength,omitempty"`
+	MinValue      *int      `json:"minValue,omitempty"`
+	MaxValue      *int      `json:"maxValue,omitempty"`
+	Metadata      *Metadata `json:"metadata"`
 }
 
 // IsRequired checks if the parameter is required.
@@ -105,52 +108,77 @@ func (p *Parameter) GetStatus() ParameterStatus {
 	return OptionalParameterStatus
 }
 
+// HasConstraints returns true if the parameter has any constraint decorators.
+func (p *Parameter) HasConstraints() bool {
+	return len(p.AllowedValues) > 0 ||
+		p.MinLength != nil ||
+		p.MaxLength != nil ||
+		p.MinValue != nil ||
+		p.MaxValue != nil
+}
+
+// GetDescription returns the description from metadata.
+func (p *Parameter) GetDescription() string {
+	if p.Metadata != nil && p.Metadata.Description != nil {
+		return *p.Metadata.Description
+	}
+	return ""
+}
+
 // UserDefinedDataType (UDDT) is a struct that contains the information about a user defined data type.
-// A user defined data type has a name, type, items (for array types), nullable flag, properties, and an optional metadata part.
-//
-// The name is the name of the user defined data type.
-// The type is the type of the user defined data type (e.g. "object" or even including other user defined types).
-// The items part is the optional items part of the user defined data type (for array types).
-// The nullable flag indicates if the user defined data type can be null.
-// The properties are the properties of the user defined data type (e.g. fields in an object).
-// The metadata part is the optional metadata part of the user defined data type (just the description).
+// A user defined data type has a name, type, items (for array types), properties, nullable flag,
+// optional constraints (minLength, maxLength, minValue, maxValue), export flag,
+// and an optional metadata part.
 type UserDefinedDataType struct {
 	Name       string                        `json:"-"`
 	Type       string                        `json:"-"`
 	Items      *Items                        `json:"items"`
-	Nullable   bool                          `json:"nullable"`
 	Properties []UserDefinedDataTypeProperty `json:"-"`
+	Nullable   bool                          `json:"nullable"`
+	MinLength  *int                          `json:"minLength,omitempty"`
+	MaxLength  *int                          `json:"maxLength,omitempty"`
+	MinValue   *int                          `json:"minValue,omitempty"`
+	MaxValue   *int                          `json:"maxValue,omitempty"`
+	Exportable bool                          `json:"-"`
 	Metadata   *Metadata                     `json:"metadata"`
 }
 
+// IsExportable returns true if the user-defined data type is marked as exportable.
+func (u *UserDefinedDataType) IsExportable() bool {
+	return u.Metadata != nil && u.Metadata.Export != nil && *u.Metadata.Export
+}
+
 // UserDefinedDataTypeProperty is a struct that contains the information about a property of a user defined data type.
-// A property has a name, type, items (for array types), nullable flag, and an optional metadata part.
-//
-// The name is the name of the property.
-// The type is the type of the property (e.g. "string" or even a user defined type).
-// The items part is the optional items part of the property (for array types).
-// The nullable flag indicates if the property can be null.
-// The metadata part is the optional metadata part of the property (just the description).
+// A property has a name, type, an optional default value, items (for array types), nullable flag,
+// optional constraints (allowed values, minLength, maxLength, minValue, maxValue)
+// and an optional metadata part.
 type UserDefinedDataTypeProperty struct {
-	Name     string    `json:"-"`
-	Type     string    `json:"-"`
-	Items    *Items    `json:"items"`
-	Nullable bool      `json:"nullable"`
-	Metadata *Metadata `json:"metadata"`
+	Name          string    `json:"-"`
+	Type          string    `json:"-"`
+	Items         *Items    `json:"items"`
+	Nullable      bool      `json:"nullable"`
+	AllowedValues []any     `json:"allowedValues,omitempty"`
+	MinLength     *int      `json:"minLength,omitempty"`
+	MaxLength     *int      `json:"maxLength,omitempty"`
+	MinValue      *int      `json:"minValue,omitempty"`
+	MaxValue      *int      `json:"maxValue,omitempty"`
+	Metadata      *Metadata `json:"metadata"`
 }
 
 // UserDefinedFunction (UDF) is a struct that contains the information about a user defined function.
-// A user defined function has a name, a list of parameters, an output and an optional metadata part.
-//
-// The name is the name of the user defined function.
-// The parameters are the parameters of the user defined function.
-// The output is the output of the user defined function.
-// The metadata part is the optional metadata part of the user defined function (just the description).
+// A user defined function has a name, a list of parameters, an output, an export flag,
+// and an optional metadata part.
 type UserDefinedFunction struct {
 	Name       string      `json:"-"`
 	Parameters []Parameter `json:"parameters"`
 	Output     Output      `json:"output"`
+	Exportable bool        `json:"-"`
 	Metadata   *Metadata   `json:"metadata"`
+}
+
+// IsExportable returns true if the user-defined function is marked as exportable.
+func (u *UserDefinedFunction) IsExportable() bool {
+	return u.Metadata != nil && u.Metadata.Export != nil && *u.Metadata.Export
 }
 
 // Variable is a struct that contains the information about a variable.
@@ -166,19 +194,19 @@ type Variable struct {
 }
 
 // Output is a struct that contains the information about an output.
-// An output has a name, type, items (for array types), nullable flag, and an optional metadata part.
-//
-// The name is the name of the output.
-// The type is the type of the output (e.g. "string").
-// The items part is the optional items part of the output (for array types).
-// The nullable flag indicates if the output can be null.
-// The metadata part is the optional metadata part of the output (just the description).
+// An output has a name, type, items (for array types), nullable flag,
+// optional constraints (minLength, maxLength, minValue, maxValue)
+// and an optional metadata part.
 type Output struct {
-	Name     string    `json:"-"`
-	Type     string    `json:"-"`
-	Items    *Items    `json:"items"`
-	Nullable bool      `json:"nullable"`
-	Metadata *Metadata `json:"metadata"`
+	Name      string    `json:"-"`
+	Type      string    `json:"-"`
+	Items     *Items    `json:"items"`
+	Nullable  bool      `json:"nullable"`
+	MinLength *int      `json:"minLength,omitempty"`
+	MaxLength *int      `json:"maxLength,omitempty"`
+	MinValue  *int      `json:"minValue,omitempty"`
+	MaxValue  *int      `json:"maxValue,omitempty"`
+	Metadata  *Metadata `json:"metadata"`
 }
 
 // Template is a struct that contains the information about a Bicep template.
