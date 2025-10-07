@@ -57,6 +57,9 @@ linters:
         - experimental
         - opinionated
       settings:
+        rangeValCopy:
+          sizeThreshold: 164
+          skipTestFuncs: true
         captLocal:
           paramsOnly: false
         elseif:

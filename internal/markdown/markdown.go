@@ -118,7 +118,7 @@ func generateTableRow(row []string) string {
 // If the template has no modules, it returns an empty string.
 // The table headers are "Symbolic Name", "Source", and "Description".
 // If an error occurs, it is returned along with an empty string.
-func generateModulesSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateModulesSection(template *types.Template) (string, error) {
 	if len(template.Modules) == 0 {
 		return "", nil
 	}
@@ -136,7 +136,7 @@ func generateModulesSection(template *types.Template) (string, error) { //nolint
 // If the template has no resources, it returns an empty string.
 // The table headers are "Symbolic Name", "Type", and "Description".
 // If an error occurs, it is returned along with an empty string.
-func generateResourcesSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateResourcesSection(template *types.Template) (string, error) {
 	if len(template.Resources) == 0 {
 		return "", nil
 	}
@@ -154,13 +154,21 @@ func generateResourcesSection(template *types.Template) (string, error) { //noli
 // generateParametersSection generates the parameters section of a template in markdown format.
 // It takes a pointer to a types.Template as input and returns the generated markdown string and an error, if any.
 // If the template has no parameters, it returns an empty string and a nil error.
-func generateParametersSection(template *types.Template) (string, error) {
+func generateParametersSection(template *types.Template, showAllDecorators bool) (string, error) { //nolint:gocyclo // This function is complex by design.
 	if len(template.Parameters) == 0 {
 		return "", nil
 	}
 
 	re := regexp.MustCompile(`([^ ]):([^ ])|([^ ]),([^ ])`)
+
+	// Base headers
 	headers := []string{"Name", "Status", "Type", "Description", "Default"}
+
+	// Add decorator columns if flag is enabled
+	if showAllDecorators {
+		headers = append(headers, "Allowed Values", "Min Length", "Max Length", "Min Value", "Max Value")
+	}
+
 	rows := make([][]string, len(template.Parameters))
 
 	for i, parameter := range template.Parameters {
@@ -189,14 +197,55 @@ func generateParametersSection(template *types.Template) (string, error) {
 		}
 
 		parameterStatus := parameter.GetStatus()
+		parameterType := extractType(parameter.Type, parameter.Items)
+		description := extractDescription(parameter.Metadata)
 
-		rows[i] = []string{
+		// Base row
+		row := []string{
 			parameter.Name,
 			parameterStatus.String(),
-			extractType(parameter.Type, parameter.Items),
-			extractDescription(parameter.Metadata),
+			parameterType,
+			description,
 			defaultValue,
 		}
+
+		// Add decorator columns if flag is enabled
+		if showAllDecorators {
+			// Format allowed values
+			allowedValues := ""
+			if len(parameter.AllowedValues) > 0 {
+				values := make([]string, len(parameter.AllowedValues))
+				for j, v := range parameter.AllowedValues {
+					values[j] = fmt.Sprintf("`%v`", v)
+				}
+				allowedValues = strings.Join(values, ", ")
+			}
+
+			// Format constraint values
+			minLength := ""
+			if parameter.MinLength != nil {
+				minLength = fmt.Sprintf("%d", *parameter.MinLength)
+			}
+
+			maxLength := ""
+			if parameter.MaxLength != nil {
+				maxLength = fmt.Sprintf("%d", *parameter.MaxLength)
+			}
+
+			minValue := ""
+			if parameter.MinValue != nil {
+				minValue = fmt.Sprintf("%d", *parameter.MinValue)
+			}
+
+			maxValue := ""
+			if parameter.MaxValue != nil {
+				maxValue = fmt.Sprintf("%d", *parameter.MaxValue)
+			}
+
+			row = append(row, allowedValues, minLength, maxLength, minValue, maxValue)
+		}
+
+		rows[i] = row
 	}
 
 	return NewMarkdownTable("Parameters", H2, headers, rows).String(), nil
@@ -205,59 +254,191 @@ func generateParametersSection(template *types.Template) (string, error) {
 // generateOutputsSection generates the outputs section of the template markdown.
 // It takes a pointer to a types.Template and returns a string representation of the outputs section and an error, if any.
 // If the template has no outputs, it returns an empty string and no error.
-func generateOutputsSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateOutputsSection(template *types.Template, showAllDecorators bool) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
 	if len(template.Outputs) == 0 {
 		return "", nil
 	}
+
+	// Base headers
 	headers := []string{"Name", "Type", "Description"}
-	rows := make([][]string, len(template.Outputs))
-	for i, output := range template.Outputs {
-		rows[i] = []string{output.Name, extractType(output.Type, output.Items), extractDescription(output.Metadata)}
+
+	// Add decorator columns if flag is enabled
+	if showAllDecorators {
+		headers = append(headers, "Min Length", "Max Length", "Min Value", "Max Value")
 	}
+
+	rows := make([][]string, len(template.Outputs))
+
+	for i, output := range template.Outputs {
+		// Base row
+		row := []string{
+			output.Name,
+			extractType(output.Type, output.Items),
+			extractDescription(output.Metadata),
+		}
+
+		// Add decorator columns if flag is enabled
+		if showAllDecorators {
+			// Format constraint values
+			minLength := ""
+			if output.MinLength != nil {
+				minLength = fmt.Sprintf("%d", *output.MinLength)
+			}
+
+			maxLength := ""
+			if output.MaxLength != nil {
+				maxLength = fmt.Sprintf("%d", *output.MaxLength)
+			}
+
+			minValue := ""
+			if output.MinValue != nil {
+				minValue = fmt.Sprintf("%d", *output.MinValue)
+			}
+
+			maxValue := ""
+			if output.MaxValue != nil {
+				maxValue = fmt.Sprintf("%d", *output.MaxValue)
+			}
+
+			row = append(row, minLength, maxLength, minValue, maxValue)
+		}
+
+		rows[i] = row
+	}
+
 	return NewMarkdownTable("Outputs", H2, headers, rows).String(), nil
 }
 
 // generateUserDefinedDataTypesSection generates a markdown table section for user-defined data types (UDDTs) based on the provided template.
 // If there are no user-defined data types in the template, an empty string is returned.
-// The table includes columns for Name, Type, and Description.
+// The table includes columns for Name, Type, Description, and conditionally Exportable and constraint information.
 // Each row in the table represents a user-defined data type, with the corresponding values extracted from the template.
 // The function returns the generated markdown table as a string and any error encountered during the process.
-func generateUserDefinedDataTypesSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateUserDefinedDataTypesSection(template *types.Template, showAllDecorators bool) (string, error) { //nolint:gocyclo,unparam,funlen // This function is complex by design.
 	if len(template.UserDefinedDataTypes) == 0 {
 		return "", nil
 	}
 
-	// Main table
+	// Base headers
 	headers := []string{"Name", "Type", "Description", "Properties"}
+
+	// Add decorator columns if flag is enabled
+	if showAllDecorators {
+		headers = append(headers[:3], "Exportable")
+		headers = append(headers, "Properties", "Min Length", "Max Length", "Min Value", "Max Value")
+	}
+
 	rows := make([][]string, len(template.UserDefinedDataTypes))
+
 	for i, dataType := range template.UserDefinedDataTypes {
 		propertiesColumn := ""
 		if len(dataType.Properties) > 0 {
 			propertiesColumn = fmt.Sprintf("[View Properties](#%s)", strings.ToLower(dataType.Name))
 		}
 
-		rows[i] = []string{
+		// Base row
+		row := []string{
 			dataType.Name,
 			extractType(dataType.Type, dataType.Items),
 			extractDescription(dataType.Metadata),
-			propertiesColumn,
 		}
+
+		// Add decorator columns if flag is enabled
+		if showAllDecorators {
+			exportable := "False" //nolint:goconst // Boolean values.
+			if dataType.IsExportable() {
+				exportable = "True" //nolint:goconst // Boolean values.
+			}
+
+			// Format constraint values
+			minLength := ""
+			if dataType.MinLength != nil {
+				minLength = fmt.Sprintf("%d", *dataType.MinLength)
+			}
+
+			maxLength := ""
+			if dataType.MaxLength != nil {
+				maxLength = fmt.Sprintf("%d", *dataType.MaxLength)
+			}
+
+			minValue := ""
+			if dataType.MinValue != nil {
+				minValue = fmt.Sprintf("%d", *dataType.MinValue)
+			}
+
+			maxValue := ""
+			if dataType.MaxValue != nil {
+				maxValue = fmt.Sprintf("%d", *dataType.MaxValue)
+			}
+
+			row = append(row, exportable, propertiesColumn, minLength, maxLength, minValue, maxValue)
+		} else {
+			row = append(row, propertiesColumn)
+		}
+
+		rows[i] = row
 	}
+
 	table := NewMarkdownTable("User Defined Data Types (UDDTs)", H2, headers, rows).String()
 
-	// Sub-tables for properties
+	// Sub-tables for properties with conditional decorator columns
 	propertyHeaders := []string{"Name", "Type", "Description"}
+
+	// Add decorator columns if flag is enabled
+	if showAllDecorators {
+		propertyHeaders = append(propertyHeaders, "Allowed Values", "Min Length", "Max Length", "Min Value", "Max Value")
+	}
+
 	for _, dataType := range template.UserDefinedDataTypes {
 		if len(dataType.Properties) == 0 {
 			continue
 		}
 		propertyRows := make([][]string, len(dataType.Properties))
 		for i, property := range dataType.Properties {
-			propertyRows[i] = []string{
+			// Base row
+			row := []string{
 				property.Name,
 				extractType(property.Type, property.Items),
 				extractDescription(property.Metadata),
 			}
+
+			// Add decorator columns if flag is enabled
+			if showAllDecorators {
+				// Format allowed values
+				allowedValues := ""
+				if len(property.AllowedValues) > 0 {
+					values := make([]string, len(property.AllowedValues))
+					for j, v := range property.AllowedValues {
+						values[j] = fmt.Sprintf("`%v`", v)
+					}
+					allowedValues = strings.Join(values, ", ")
+				}
+
+				// Format constraint values
+				minLength := ""
+				if property.MinLength != nil {
+					minLength = fmt.Sprintf("%d", *property.MinLength)
+				}
+
+				maxLength := ""
+				if property.MaxLength != nil {
+					maxLength = fmt.Sprintf("%d", *property.MaxLength)
+				}
+
+				minValue := ""
+				if property.MinValue != nil {
+					minValue = fmt.Sprintf("%d", *property.MinValue)
+				}
+
+				maxValue := ""
+				if property.MaxValue != nil {
+					maxValue = fmt.Sprintf("%d", *property.MaxValue)
+				}
+
+				row = append(row, allowedValues, minLength, maxLength, minValue, maxValue)
+			}
+
+			propertyRows[i] = row
 		}
 		table += "\n" + NewMarkdownTable(dataType.Name, H3, propertyHeaders, propertyRows).String()
 	}
@@ -267,28 +448,51 @@ func generateUserDefinedDataTypesSection(template *types.Template) (string, erro
 
 // generateUserDefinedFunctionsSection converts a template's user-defined functions into a markdown table.
 // If the template has no user-defined functions, it returns an empty string.
-// The table headers are "Name" and "Description".
+// The table headers conditionally include "Name", "Description", "Exportable", and "Output Type".
 // If an error occurs, it is returned along with an empty string.
-func generateUserDefinedFunctionsSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateUserDefinedFunctionsSection(template *types.Template, showAllDecorators bool) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
 	if len(template.UserDefinedFunctions) == 0 {
 		return "", nil
 	}
+
+	// Base headers
 	headers := []string{"Name", "Description", "Output Type"}
+
+	// Add Exportable column if flag is enabled
+	if showAllDecorators {
+		headers = []string{"Name", "Description", "Exportable", "Output Type"}
+	}
+
 	rows := make([][]string, len(template.UserDefinedFunctions))
+
 	for i, function := range template.UserDefinedFunctions {
-		rows[i] = []string{
+		// Base row
+		row := []string{
 			function.Name,
 			extractDescription(function.Metadata),
-			extractType(function.Output.Type, function.Output.Items),
 		}
+
+		// Add Exportable column if flag is enabled
+		if showAllDecorators {
+			exportable := "False"
+			if function.IsExportable() {
+				exportable = "True"
+			}
+			row = append(row, exportable)
+		}
+
+		// Add Output Type
+		row = append(row, extractType(function.Output.Type, function.Output.Items))
+		rows[i] = row
 	}
+
 	return NewMarkdownTable("User Defined Functions (UDFs)", H2, headers, rows).String(), nil
 }
 
 // generateVariablesSection generates the variables section of the markdown document based on the provided template.
 // If the template has no variables, it returns an empty string.
 // Otherwise, it creates a markdown table with the variable names and descriptions.
-func generateVariablesSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateVariablesSection(template *types.Template) (string, error) {
 	if len(template.Variables) == 0 {
 		return "", nil
 	}
@@ -360,7 +564,7 @@ func generateUsageSection(template *types.Template) (string, error) {
 // It takes a pointer to a types.Template as input and returns the generated description section as a string.
 // If the template has a non-empty description in its metadata, it will be included in the generated section.
 // Otherwise, an empty string will be returned.
-func generateDescriptionSection(template *types.Template) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
+func generateDescriptionSection(template *types.Template) (string, error) {
 	var builder strings.Builder
 	if template.Metadata != nil && template.Metadata.Description != nil && *template.Metadata.Description != "" {
 		builder.WriteString(fmt.Sprintf("## Description\n\n%s\n", *template.Metadata.Description))

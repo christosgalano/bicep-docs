@@ -16,8 +16,9 @@ import (
 // If the file does not exist or its content differs from the generated Markdown string, the file is created or updated accordingly.
 // The verbose parameter controls whether informational messages are printed to stdout.
 // The sections parameter specifies the sections to include in the generated Markdown string.
+// The showAllDecorators parameter controls whether to include all decorator columns in the output.
 // Returns an error if any operation fails.
-func CreateFile(filename string, template *types.Template, verbose bool, sections []types.Section) error { //nolint:gocyclo // This function is complex by design.
+func CreateFile(filename string, template *types.Template, verbose bool, sections []types.Section, showAllDecorators bool) error { //nolint:gocyclo // This function is complex by design.
 	// Check if template is nil
 	if template == nil {
 		return fmt.Errorf("invalid template (nil)")
@@ -41,7 +42,7 @@ func CreateFile(filename string, template *types.Template, verbose bool, section
 	// Build Markdown string
 	var builder strings.Builder
 	builder.Grow(estimateMarkdownSize(template, sections))
-	if err := buildMarkdownString(&builder, template, sections); err != nil {
+	if err := buildMarkdownString(&builder, template, sections, showAllDecorators); err != nil {
 		return fmt.Errorf("failed to build Markdown string: %w", err)
 	}
 	markdownString := builder.String()
@@ -79,7 +80,7 @@ func CreateFile(filename string, template *types.Template, verbose bool, section
 	return nil
 }
 
-func buildMarkdownString(builder *strings.Builder, template *types.Template, sections []types.Section) error {
+func buildMarkdownString(builder *strings.Builder, template *types.Template, sections []types.Section, showAllDecorators bool) error {
 	// Template metadata
 	var title *string
 	if template.Metadata == nil || template.Metadata.Name == nil || *template.Metadata.Name == "" {
@@ -92,22 +93,32 @@ func buildMarkdownString(builder *strings.Builder, template *types.Template, sec
 	// Create a mapping between the section enum and the corresponding markdown function
 	// Each function will be called in turn to generate a specific section of the markdown file.
 	// The order of the functions in the slice determines the order of the sections in the markdown file.
-	sectionMarkdownFunctions := map[types.Section]func(*types.Template) (string, error){
-		types.DescriptionSection:          generateDescriptionSection,
-		types.UsageSection:                generateUsageSection,
-		types.ModulesSection:              generateModulesSection,
-		types.ResourcesSection:            generateResourcesSection,
+	sectionMarkdownFunctions := map[types.Section]func(*types.Template, bool) (string, error){
+		types.DescriptionSection: func(t *types.Template, _ bool) (string, error) {
+			return generateDescriptionSection(t)
+		},
+		types.UsageSection: func(t *types.Template, _ bool) (string, error) {
+			return generateUsageSection(t)
+		},
+		types.ModulesSection: func(t *types.Template, _ bool) (string, error) {
+			return generateModulesSection(t)
+		},
+		types.ResourcesSection: func(t *types.Template, _ bool) (string, error) {
+			return generateResourcesSection(t)
+		},
 		types.ParametersSection:           generateParametersSection,
 		types.UserDefinedDataTypesSection: generateUserDefinedDataTypesSection,
 		types.UserDefinedFunctionsSection: generateUserDefinedFunctionsSection,
-		types.VariablesSection:            generateVariablesSection,
-		types.OutputsSection:              generateOutputsSection,
+		types.VariablesSection: func(t *types.Template, _ bool) (string, error) {
+			return generateVariablesSection(t)
+		},
+		types.OutputsSection: generateOutputsSection,
 	}
 
 	// Iterate over the sections slice and call the corresponding function for each section
 	for _, section := range sections {
 		if function, ok := sectionMarkdownFunctions[section]; ok {
-			sectionContent, err := function(template)
+			sectionContent, err := function(template, showAllDecorators)
 			if err != nil {
 				return err
 			}
