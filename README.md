@@ -3,7 +3,7 @@
 [![ci](https://github.com/christosgalano/bicep-docs/actions/workflows/ci.yaml/badge.svg?branch=main&event=push)](https://github.com/christosgalano/bicep-docs/actions/workflows/ci.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/christosgalano/bicep-docs)](https://goreportcard.com/report/github.com/christosgalano/bicep-docs)
 [![Go Reference](https://pkg.go.dev/badge/github.com/christosgalano/bicep-docs.svg)](https://pkg.go.dev/github.com/christosgalano/bicep-docs)
-[![Github Downloads](https://img.shields.io/github/downloads/christosgalano/bicep-docs/total.svg)](https://github.com/christosgalano/bicep-docs/releases)
+[![Github Downloads](https://img.shields.io/github/downloads/christosgalano/bicep-docs/total.svg?cacheSeconds=3600)](https://github.com/christosgalano/bicep-docs/releases)
 
 ![bicep-docs](assets/images/main-extra-small.png)
 
