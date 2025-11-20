@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Setup Go
       uses: actions/setup-go@v5
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Setup Go
       uses: actions/setup-go@v5
@@ -78,7 +78,7 @@ jobs:
   #     contents: write
   #   steps:
   #   - name: Checkout repository
-  #     uses: actions/checkout@v5
+  #     uses: actions/checkout@v6
 
   #   - name: Setup Go
   #     uses: actions/setup-go@v5
