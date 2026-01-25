@@ -50,6 +50,7 @@ tasks:
     cmds:
       - printf "---------- template ----------------------\n\n" && task test:template && printf "\n\n"
       - printf "---------- markdown ----------------------\n\n" && task test:markdown && printf "\n\n"
+      - printf "---------- types -------------------------\n\n" && task test:types && printf "\n\n"
       - printf "---------- cli ---------------------------\n\n" && task test:cli && printf "\n\n"
     silent: true
 
@@ -71,6 +72,12 @@ tasks:
     cmd: gotestsum -f testname
     silent: true
 
+  test:types:
+    desc: Run tests for types package
+    dir: ./internal/types
+    cmd: gotestsum -f testname
+    silent: true
+
   deadcode:
     desc: Run deadcode
     cmd: deadcode ./...
@@ -83,7 +90,7 @@ tasks:
 
   coverage:
     desc: Generate coverage information for all packages
-    cmd: go test -cover ./internal/markdown ./internal/template ./internal/cli
+    cmd: go test -cover ./internal/markdown ./internal/template ./internal/cli ./internal/types
     silent: true
 
   coverage:markdown:
@@ -98,6 +105,22 @@ tasks:
     desc: Generate coverage information for template package
     cmds:
       - go test -coverprofile=coverage.out ./internal/template
+      - go tool cover -func=coverage.out
+      - rm coverage.out
+    silent: true
+
+  coverage:cli:
+    desc: Generate coverage information for cli package
+    cmds:
+      - go test -coverprofile=coverage.out ./internal/cli
+      - go tool cover -func=coverage.out
+      - rm coverage.out
+    silent: true
+
+  coverage:types:
+    desc: Generate coverage information for types package
+    cmds:
+      - go test -coverprofile=coverage.out ./internal/types
       - go tool cover -func=coverage.out
       - rm coverage.out
     silent: true

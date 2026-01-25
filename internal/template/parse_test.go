@@ -248,6 +248,16 @@ func TestParseTemplates(t *testing.T) {
 			Description: strPtr("Test template with variable optimization"),
 		},
 	}
+	anyTemplate := &types.Template{
+		FileName: "testdata/any.bicep",
+		Parameters: []types.Parameter{
+			{
+				Name: "test",
+				Type: "any",
+			},
+		},
+		Metadata: &types.Metadata{},
+	}
 
 	type args struct {
 		bicepFile string
@@ -293,6 +303,15 @@ func TestParseTemplates(t *testing.T) {
 				armFile:   "testdata/var_optimization.json",
 			},
 			want:    variableOptimizationTemplate,
+			wantErr: false,
+		},
+		{
+			name: "any_type_template",
+			args: args{
+				bicepFile: "testdata/any.bicep",
+				armFile:   "testdata/any.json",
+			},
+			want:    anyTemplate,
 			wantErr: false,
 		},
 		{
