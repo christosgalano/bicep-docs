@@ -52,7 +52,7 @@ To run bicep-docs, either the Azure CLI or the Bicep CLI must be [installed](htt
 | CLI   | Minimum Required Version |
 | ----- | ------------------------ |
 | Azure | 2.77.0                   |
-| Bicep | 0.38.0                   |
+| Bicep | 0.38.3                   |
 
 ## Usage
 
