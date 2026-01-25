@@ -17,19 +17,19 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
-        cache: false
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: false
 
-    - name: Lint with golangci-lint
-      uses: golangci/golangci-lint-action@v8
-      with:
-        version: v2.1
+      - name: Lint with golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
 
   test:
     name: test-${{ matrix.os }}
@@ -40,35 +40,39 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
 
-    - name: Install Task
-      run: go install github.com/go-task/task/v3/cmd/task@latest
+        # run: go install github.com/go-task/task/v3/cmd/task@latest
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install Go tools
-      run: task setup:test
+      - name: Install Go tools
+        run: task setup:test
 
-    - name: Security scan
-      id: security
-      run: task security
-    
-    - name: Test
-      id: test
-      run: task test
+      - name: Security scan
+        id: security
+        run: task security
 
-    - name: Code coverage
-      id: coverage
-      run: task coverage
-    
-    - name: Benchmark
-      if: github.event_name == 'pull_request'
-      run: task benchmark
+      - name: Test
+        id: test
+        run: task test
+
+      - name: Code coverage
+        id: coverage
+        run: task coverage
+
+      - name: Benchmark
+        if: github.event_name == 'pull_request'
+        run: task benchmark
 
   # update-readme:
   #   runs-on: ubuntu-latest
