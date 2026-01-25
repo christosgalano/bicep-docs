@@ -17,8 +17,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+    - name: Checkout repository
+      uses: actions/checkout@v6
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -26,10 +26,10 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - name: Lint with golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: v2.1
+    - name: Lint with golangci-lint
+      uses: golangci/golangci-lint-action@v9
+      with:
+        version: v2.1
 
   test:
     name: test-${{ matrix.os }}
@@ -82,7 +82,7 @@ jobs:
   #     contents: write
   #   steps:
   #   - name: Checkout repository
-  #     uses: actions/checkout@v5
+  #     uses: actions/checkout@v6
 
   #   - name: Setup Go
   #     uses: actions/setup-go@v5
