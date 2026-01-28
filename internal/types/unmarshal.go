@@ -37,7 +37,7 @@ func unmarshalTypeOrRef(data []byte) (string, error) {
 	// Check if this is a truly empty object (no fields at all)
 	// This represents the Bicep 'any' type in compiled ARM templates
 	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err == nil && len(raw) == 0 {
+	if err := json.Unmarshal(data, &raw); err == nil && (len(raw) == 0 || raw["metadata"].(map[string]any)["description"] != nil) {
 		return "any", nil
 	}
 
