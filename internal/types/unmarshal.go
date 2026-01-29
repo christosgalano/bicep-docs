@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -34,15 +33,10 @@ func unmarshalTypeOrRef(data []byte) (string, error) {
 		return result.Ref, nil
 	}
 
-	// Check if this is a truly empty object (no fields at all)
-	// This represents the Bicep 'any' type in compiled ARM templates
-	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err == nil && len(raw) == 0 {
-		return "any", nil
-	}
-
-	// Has other fields but no type or $ref - this is malformed
-	return "", fmt.Errorf("neither type nor $ref field found")
+	// If neither type nor $ref is present, this represents the Bicep 'any' type.
+	// In ARM JSON, 'any' type is emitted without a "type" or "$ref" field.
+	// It may be an empty object {} or may contain other fields like metadata.
+	return "any", nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into a Parameter.

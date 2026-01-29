@@ -36,22 +36,22 @@ func TestUnmarshalTypeOrRef(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name:     "object with metadata but no type or $ref - should error",
+			name:     "object with metadata but no type or $ref - any type",
 			input:    []byte(`{"metadata": {"description": "test"}}`),
-			expected: "",
-			wantErr:  true,
+			expected: "any",
+			wantErr:  false,
 		},
 		{
-			name:     "object with other fields but no type or $ref - should error",
+			name:     "object with other fields but no type or $ref - any type",
 			input:    []byte(`{"other": "value"}`),
-			expected: "",
-			wantErr:  true,
+			expected: "any",
+			wantErr:  false,
 		},
 		{
-			name:     "object with nullable but no type or $ref - should error",
+			name:     "object with nullable but no type or $ref - any type",
 			input:    []byte(`{"nullable": true}`),
-			expected: "",
-			wantErr:  true,
+			expected: "any",
+			wantErr:  false,
 		},
 	}
 
