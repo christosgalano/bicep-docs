@@ -106,6 +106,21 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      - linters:
+          - goconst
+        path: _test\.go$
+      - linters:
+          - goconst
+        path: markdown\.go$
+        text: "string `(Name|Type|Description|Exportable|Output Type|Symbolic Name|Properties|securestring|array)` has"
+      - linters:
+          - goconst
+        path: unmarshal\.go$
+        text: "string `any` has"
+      - linters:
+          - staticcheck
+        text: "QF1012"
 
 formatters:
   enable:

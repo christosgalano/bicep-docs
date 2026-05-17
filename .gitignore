@@ -1,3 +1,6 @@
+# Claude's .gitignore for Go projects
+.claude/settings.local.json
+
 # Binaries
 /bin/*
 !/bin/.keep

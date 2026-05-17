@@ -20,6 +20,8 @@ const (
 	H3                       // H3 represents a level 3 header (###)
 )
 
+const flagYes = "Yes" // Shared value for all boolean flag columns (Sealed, Exportable).
+
 // String returns the string representation of the HeaderType.
 func (h HeaderType) String() string {
 	switch h {
@@ -200,7 +202,6 @@ func generateParametersSection(template *types.Template, showAllDecorators bool)
 		parameterType := extractType(parameter.Type, parameter.Items)
 		description := extractDescription(parameter.Metadata)
 
-		// Base row
 		row := []string{
 			parameter.Name,
 			parameterStatus.String(),
@@ -259,7 +260,6 @@ func generateOutputsSection(template *types.Template, showAllDecorators bool) (s
 		return "", nil
 	}
 
-	// Base headers
 	headers := []string{"Name", "Type", "Description"}
 
 	// Add decorator columns if flag is enabled
@@ -270,7 +270,6 @@ func generateOutputsSection(template *types.Template, showAllDecorators bool) (s
 	rows := make([][]string, len(template.Outputs))
 
 	for i, output := range template.Outputs {
-		// Base row
 		row := []string{
 			output.Name,
 			extractType(output.Type, output.Items),
@@ -319,13 +318,12 @@ func generateUserDefinedDataTypesSection(template *types.Template, showAllDecora
 		return "", nil
 	}
 
-	// Base headers
-	headers := []string{"Name", "Type", "Description", "Properties"}
-
-	// Add decorator columns if flag is enabled
+	// Build headers: Name, Type, Description, [Sealed, Exportable, constraints...], Properties
+	var headers []string
 	if showAllDecorators {
-		headers = append(headers[:3], "Exportable")
-		headers = append(headers, "Properties", "Min Length", "Max Length", "Min Value", "Max Value")
+		headers = []string{"Name", "Type", "Description", "Sealed", "Exportable", "Properties", "Min Length", "Max Length", "Min Value", "Max Value"}
+	} else {
+		headers = []string{"Name", "Type", "Description", "Properties"}
 	}
 
 	rows := make([][]string, len(template.UserDefinedDataTypes))
@@ -336,21 +334,20 @@ func generateUserDefinedDataTypesSection(template *types.Template, showAllDecora
 			propertiesColumn = fmt.Sprintf("[View Properties](#%s)", strings.ToLower(dataType.Name))
 		}
 
-		// Base row
-		row := []string{
-			dataType.Name,
-			extractType(dataType.Type, dataType.Items),
-			extractDescription(dataType.Metadata),
-		}
+		description := extractDescription(dataType.Metadata)
 
-		// Add decorator columns if flag is enabled
+		var row []string
 		if showAllDecorators {
-			exportable := "False" //nolint:goconst // Boolean values.
-			if dataType.IsExportable() {
-				exportable = "True" //nolint:goconst // Boolean values.
+			sealedVal := ""
+			if dataType.Sealed {
+				sealedVal = flagYes
 			}
 
-			// Format constraint values
+			exportableVal := ""
+			if dataType.IsExportable() {
+				exportableVal = flagYes
+			}
+
 			minLength := ""
 			if dataType.MinLength != nil {
 				minLength = fmt.Sprintf("%d", *dataType.MinLength)
@@ -371,9 +368,9 @@ func generateUserDefinedDataTypesSection(template *types.Template, showAllDecora
 				maxValue = fmt.Sprintf("%d", *dataType.MaxValue)
 			}
 
-			row = append(row, exportable, propertiesColumn, minLength, maxLength, minValue, maxValue)
+			row = []string{dataType.Name, extractType(dataType.Type, dataType.Items), description, sealedVal, exportableVal, propertiesColumn, minLength, maxLength, minValue, maxValue}
 		} else {
-			row = append(row, propertiesColumn)
+			row = []string{dataType.Name, extractType(dataType.Type, dataType.Items), description, propertiesColumn}
 		}
 
 		rows[i] = row
@@ -474,11 +471,11 @@ func generateUserDefinedFunctionsSection(template *types.Template, showAllDecora
 
 		// Add Exportable column if flag is enabled
 		if showAllDecorators {
-			exportable := "False"
+			exportableVal := ""
 			if function.IsExportable() {
-				exportable = "True"
+				exportableVal = flagYes
 			}
-			row = append(row, exportable)
+			row = append(row, exportableVal)
 		}
 
 		// Add Output Type
@@ -603,7 +600,15 @@ func readFileContent(filename string) (string, error) {
 // extractType extracts the type from a type string.
 // If the type is a user defined data type, it returns the name of it.
 // If the type is array and items are provided, it returns the proper array type notation.
+// Secure ARM types encode the security flag in the display string itself.
 func extractType(t string, items *types.Items) string {
+	switch strings.ToLower(t) {
+	case "securestring":
+		return "string (secure)"
+	case "secureobject":
+		return "object (secure)"
+	}
+
 	// Handle UDDTs
 	if strings.HasPrefix(t, "#/definitions/") {
 		split := strings.Split(t, "/")

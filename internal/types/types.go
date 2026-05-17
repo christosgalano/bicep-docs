@@ -76,11 +76,13 @@ func (ps ParameterStatus) String() string {
 
 // Parameter is a struct that contains the information about a parameter.
 // A parameter has a name, type, an optional default value, items (for array types), nullable flag,
-// optional constraints (allowed values, minLength, maxLength, minValue, maxValue)
+// optional constraints (allowed values, minLength, maxLength, minValue, maxValue),
+// a secure flag (derived from the ARM type "securestring"/"secureObject"),
 // and an optional metadata part.
 type Parameter struct {
 	Name          string    `json:"-"`
 	Type          string    `json:"-"`
+	Secure        bool      `json:"-"`
 	DefaultValue  any       `json:"defaultValue"`
 	Items         *Items    `json:"items"`
 	Nullable      bool      `json:"nullable"`
@@ -128,10 +130,12 @@ func (p *Parameter) GetDescription() string {
 // UserDefinedDataType (UDDT) is a struct that contains the information about a user defined data type.
 // A user defined data type has a name, type, items (for array types), properties, nullable flag,
 // optional constraints (minLength, maxLength, minValue, maxValue), export flag,
+// a sealed flag (derived from "additionalProperties": false in the ARM definition),
 // and an optional metadata part.
 type UserDefinedDataType struct {
 	Name       string                        `json:"-"`
 	Type       string                        `json:"-"`
+	Sealed     bool                          `json:"-"`
 	Items      *Items                        `json:"items"`
 	Properties []UserDefinedDataTypeProperty `json:"-"`
 	Nullable   bool                          `json:"nullable"`
@@ -195,11 +199,13 @@ type Variable struct {
 
 // Output is a struct that contains the information about an output.
 // An output has a name, type, items (for array types), nullable flag,
-// optional constraints (minLength, maxLength, minValue, maxValue)
+// optional constraints (minLength, maxLength, minValue, maxValue),
+// a secure flag (derived from the ARM type "securestring"/"secureObject"),
 // and an optional metadata part.
 type Output struct {
 	Name      string    `json:"-"`
 	Type      string    `json:"-"`
+	Secure    bool      `json:"-"`
 	Items     *Items    `json:"items"`
 	Nullable  bool      `json:"nullable"`
 	MinLength *int      `json:"minLength,omitempty"`

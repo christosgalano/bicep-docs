@@ -380,6 +380,343 @@ func TestCreateFile(t *testing.T) {
 			checkFile: "./testdata/no_metadata.md",
 		},
 		{
+			name: "secure params and outputs",
+			args: args{
+				filename: "secure.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Parameters: []types.Parameter{
+						{
+							Name:   "adminPassword",
+							Type:   "securestring",
+							Secure: true,
+							Metadata: &types.Metadata{
+								Description: func() *string {
+									s := "Admin password for the virtual machine."
+									return &s
+								}(),
+							},
+						},
+						{
+							Name:   "secretConfig",
+							Type:   "secureObject",
+							Secure: true,
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Secret configuration object."; return &s }(),
+							},
+						},
+						{
+							Name:         "location",
+							Type:         "string",
+							DefaultValue: "westus",
+							Metadata: &types.Metadata{
+								Description: func() *string {
+									s := "Non-secure parameter for comparison."
+									return &s
+								}(),
+							},
+						},
+					},
+					Outputs: []types.Output{
+						{
+							Name:   "connectionString",
+							Type:   "securestring",
+							Secure: true,
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "The generated connection string."; return &s }(),
+							},
+						},
+						{
+							Name:   "secretObject",
+							Type:   "secureObject",
+							Secure: true,
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "The secret configuration output."; return &s }(),
+							},
+						},
+						{
+							Name: "region",
+							Type: "string",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Non-secure output for comparison."; return &s }(),
+							},
+						},
+					},
+				},
+				showAllDecorators: false,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/secure.md",
+		},
+		{
+			name: "sealed UDDTs",
+			args: args{
+				filename: "sealed.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Parameters: []types.Parameter{
+						{
+							Name: "config",
+							Type: "#/definitions/SealedConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the sealed type."; return &s }(),
+							},
+						},
+						{
+							Name: "openConfig",
+							Type: "#/definitions/OpenConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the open type."; return &s }(),
+							},
+						},
+					},
+					UserDefinedDataTypes: []types.UserDefinedDataType{
+						{
+							Name:   "SealedConfig",
+							Type:   "object",
+							Sealed: true,
+							Metadata: &types.Metadata{
+								Description: func() *string {
+									s := "A sealed configuration type that does not allow extra properties."
+									return &s
+								}(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "name",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The name of the resource."; return &s }(),
+									},
+								},
+								{
+									Name: "value",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The numeric value."; return &s }(),
+									},
+								},
+							},
+						},
+						{
+							Name: "OpenConfig",
+							Type: "object",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "An unsealed type for comparison."; return &s }(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "host",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The host address."; return &s }(),
+									},
+								},
+								{
+									Name: "port",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The port number."; return &s }(),
+									},
+								},
+							},
+						},
+					},
+				},
+				showAllDecorators: false,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/sealed.md",
+		},
+		{
+			name: "exportable UDDTs and UDFs",
+			args: args{
+				filename: "export.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Parameters: []types.Parameter{
+						{
+							Name: "config",
+							Type: "#/definitions/ExportedConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the exported type."; return &s }(),
+							},
+						},
+						{
+							Name: "settings",
+							Type: "#/definitions/InternalConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the internal type."; return &s }(),
+							},
+						},
+					},
+					UserDefinedDataTypes: []types.UserDefinedDataType{
+						{
+							Name: "ExportedConfig",
+							Type: "object",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "An exported configuration type."; return &s }(),
+								Export:      func() *bool { b := true; return &b }(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "name",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The resource name."; return &s }(),
+									},
+								},
+								{
+									Name: "value",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The numeric value."; return &s }(),
+									},
+								},
+							},
+						},
+						{
+							Name: "InternalConfig",
+							Type: "object",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "An internal type (not exported)."; return &s }(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "host",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The host address."; return &s }(),
+									},
+								},
+								{
+									Name: "port",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The port number."; return &s }(),
+									},
+								},
+							},
+						},
+					},
+					UserDefinedFunctions: []types.UserDefinedFunction{
+						{
+							Name:   "buildUrl",
+							Output: types.Output{Type: "string"},
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Exported function to build a URL."; return &s }(),
+								Export:      func() *bool { b := true; return &b }(),
+							},
+						},
+						{
+							Name:   "double",
+							Output: types.Output{Type: "int"},
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Internal function to double a value."; return &s }(),
+							},
+						},
+					},
+				},
+				showAllDecorators: false,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/export.md",
+		},
+		{
+			name: "exportable UDDTs and UDFs with show-all-decorators",
+			args: args{
+				filename: "export_all.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Parameters: []types.Parameter{
+						{
+							Name: "config",
+							Type: "#/definitions/ExportedConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the exported type."; return &s }(),
+							},
+						},
+						{
+							Name: "settings",
+							Type: "#/definitions/InternalConfig",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Parameter using the internal type."; return &s }(),
+							},
+						},
+					},
+					UserDefinedDataTypes: []types.UserDefinedDataType{
+						{
+							Name: "ExportedConfig",
+							Type: "object",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "An exported configuration type."; return &s }(),
+								Export:      func() *bool { b := true; return &b }(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "name",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The resource name."; return &s }(),
+									},
+								},
+								{
+									Name: "value",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The numeric value."; return &s }(),
+									},
+								},
+							},
+						},
+						{
+							Name: "InternalConfig",
+							Type: "object",
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "An internal type (not exported)."; return &s }(),
+							},
+							Properties: []types.UserDefinedDataTypeProperty{
+								{
+									Name: "host",
+									Type: "string",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The host address."; return &s }(),
+									},
+								},
+								{
+									Name: "port",
+									Type: "int",
+									Metadata: &types.Metadata{
+										Description: func() *string { s := "The port number."; return &s }(),
+									},
+								},
+							},
+						},
+					},
+					UserDefinedFunctions: []types.UserDefinedFunction{
+						{
+							Name:   "buildUrl",
+							Output: types.Output{Type: "string"},
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Exported function to build a URL."; return &s }(),
+								Export:      func() *bool { b := true; return &b }(),
+							},
+						},
+						{
+							Name:   "double",
+							Output: types.Output{Type: "int"},
+							Metadata: &types.Metadata{
+								Description: func() *string { s := "Internal function to double a value."; return &s }(),
+							},
+						},
+					},
+				},
+				showAllDecorators: true,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/export_all.md",
+		},
+		{
 			name: "given path is a directory",
 			args: args{
 				filename:          "testdata",

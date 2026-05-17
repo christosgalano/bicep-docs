@@ -51,7 +51,7 @@ module reference_name 'path_to_module | container_registry_reference' = {
 | Name | Status | Type | Description | Default | Allowed Values | Min Length | Max Length | Min Value | Max Value |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | additionalSubnets | Optional | array | Optional array of additional subnets | [] |  |  |  |  |  |
-| adminPassword | Required | securestring | Administrator password |  |  | 12 | 128 |  |  |
+| adminPassword | Required | string (secure) | Administrator password |  |  | 12 | 128 |  |  |
 | adminUsername | Required | string | Administrator username |  |  | 3 | 20 |  |  |
 | customResourceName | Required | resourceName (uddt) | Custom resource name using exported type |  |  |  |  |  |  |
 | diskSizeGB | Optional | int | Data disk size in GB | 128 |  |  |  | 32 | 1024 |
@@ -67,12 +67,12 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## User Defined Data Types (UDDTs)
 
-| Name | Type | Description | Exportable | Properties | Min Length | Max Length | Min Value | Max Value |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| networkConfig | object | Non-exportable custom type for network settings | False | [View Properties](#networkconfig) |  |  |  |  |
-| resourceName | string | Exportable custom string type for resource names | True |  | 5 | 50 |  |  |
-| storageConfig | object | Exportable custom type for storage account configuration | True | [View Properties](#storageconfig) |  |  |  |  |
-| tagValue | string | Non-exportable custom string type for tags | False |  | 1 | 10 |  |  |
+| Name | Type | Description | Sealed | Exportable | Properties | Min Length | Max Length | Min Value | Max Value |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| networkConfig | object | Non-exportable custom type for network settings |  |  | [View Properties](#networkconfig) |  |  |  |  |
+| resourceName | string | Exportable custom string type for resource names |  | Yes |  | 5 | 50 |  |  |
+| storageConfig | object | Exportable custom type for storage account configuration |  | Yes | [View Properties](#storageconfig) |  |  |  |  |
+| tagValue | string | Non-exportable custom string type for tags |  |  |  | 1 | 10 |  |  |
 
 ### networkConfig
 
@@ -93,10 +93,10 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 | Name | Description | Exportable | Output Type |
 | --- | --- | --- | --- |
-| calculateStorageSize | Non-exportable function to calculate storage size | False | int |
-| generateResourceName | Exportable function to generate unique resource names | True | string |
-| getDefaultTags | Non-exportable function to get default tags | False | object |
-| isValidResourceName | Exportable function to validate resource naming convention | True | bool |
+| calculateStorageSize | Non-exportable function to calculate storage size |  | int |
+| generateResourceName | Exportable function to generate unique resource names | Yes | string |
+| getDefaultTags | Non-exportable function to get default tags |  | object |
+| isValidResourceName | Exportable function to validate resource naming convention | Yes | bool |
 
 ## Variables
 

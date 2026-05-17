@@ -8,6 +8,11 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+const (
+	secureStringType = "securestring"
+	secureObjectType = "secureobject"
+)
+
 // unmarshalTypeOrRef unmarshals a JSON object into a type or a $ref.
 //
 // Bicep v0.38.3 introduced the 'any' type, which disables compile-time
@@ -41,6 +46,7 @@ func unmarshalTypeOrRef(data []byte) (string, error) {
 
 // UnmarshalJSON unmarshals a JSON object into a Parameter.
 // The type field can be either a type or a $ref.
+// Secure is derived from the ARM type: "securestring" and "secureObject" map to Secure=true.
 func (p *Parameter) UnmarshalJSON(data []byte) error {
 	type Alias Parameter
 	aux := &struct {
@@ -58,11 +64,15 @@ func (p *Parameter) UnmarshalJSON(data []byte) error {
 	}
 	p.Type = tr
 
+	lowerType := strings.ToLower(p.Type)
+	p.Secure = lowerType == secureStringType || lowerType == secureObjectType
+
 	return nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into an Output.
 // The type field can be either a type or a $ref.
+// Secure is derived from the ARM type: "securestring" and "secureObject" map to Secure=true.
 func (o *Output) UnmarshalJSON(data []byte) error {
 	type Alias Output
 	aux := &struct {
@@ -81,11 +91,15 @@ func (o *Output) UnmarshalJSON(data []byte) error {
 	}
 	o.Type = tr
 
+	lowerType := strings.ToLower(o.Type)
+	o.Secure = lowerType == secureStringType || lowerType == secureObjectType
+
 	return nil
 }
 
 // UnmarshalJSON unmarshals a JSON object into a UserDefinedDataType.
 // The type field can be either a type or a $ref.
+// Sealed is derived from "additionalProperties": false in the ARM definition.
 func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 	type Alias UserDefinedDataType
 	aux := &struct {
@@ -98,14 +112,24 @@ func (u *UserDefinedDataType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Process type or $ref
 	tr, err := unmarshalTypeOrRef(data)
 	if err != nil {
 		return err
 	}
 	u.Type = tr
 
-	// Process properties
+	// Derive Sealed: additionalProperties=false means no extra properties are allowed.
+	// Parse separately to avoid struct field alignment issues with the composite aux struct.
+	var sealedCheck struct {
+		AdditionalProperties any `json:"additionalProperties"`
+	}
+	if err := json.Unmarshal(data, &sealedCheck); err != nil {
+		return err
+	}
+	if boolVal, ok := sealedCheck.AdditionalProperties.(bool); ok {
+		u.Sealed = !boolVal
+	}
+
 	for name, property := range aux.Properties {
 		property.Name = name
 		u.Properties = append(u.Properties, property)
