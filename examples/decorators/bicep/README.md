@@ -51,7 +51,7 @@ module reference_name 'path_to_module | container_registry_reference' = {
 | Name | Status | Type | Description | Default |
 | --- | --- | --- | --- | --- |
 | additionalSubnets | Optional | array | Optional array of additional subnets | [] |
-| adminPassword | Required | securestring | Administrator password |  |
+| adminPassword | Required | string (secure) | Administrator password |  |
 | adminUsername | Required | string | Administrator username |  |
 | customResourceName | Required | resourceName (uddt) | Custom resource name using exported type |  |
 | diskSizeGB | Optional | int | Data disk size in GB | 128 |
