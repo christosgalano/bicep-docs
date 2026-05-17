@@ -26,14 +26,14 @@ Sections are togglable: description, usage, modules, resources, parameters, uddt
 ## Research steps
 
 1. Fetch the Azure/bicep GitHub releases page to identify the latest version and recent release notes:
-   - https://github.com/Azure/bicep/releases
+   - <https://github.com/Azure/bicep/releases>
    - Fetch the 3-5 most recent release pages for detailed changelogs.
 
 2. Check the Bicep "What's new" documentation:
-   - https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/whats-new
+   - <https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/whats-new>
 
 3. Look at the Bicep language specification or changelog for new constructs:
-   - https://github.com/Azure/bicep/blob/main/CHANGELOG.md
+   - <https://github.com/Azure/bicep/blob/main/CHANGELOG.md>
 
 4. Search for any new language features introduced in recent months:
    - New decorators (e.g., @sealed, @discriminator, @batchSize, @description on new constructs)

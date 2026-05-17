@@ -122,7 +122,7 @@ Parse a Bicep file and generate comprehensive documentation with all decorator i
 bicep-docs --input main.bicep --show-all-decorators
 ```
 
-More examples can be found [here](examples).
+More examples can be found in the [examples](examples) directory.
 
 ### Documentation format
 
@@ -230,7 +230,7 @@ This tool is extremely useful if you are following this structure for your Bicep
 
 ## Contributing
 
-Information about contributing to this project can be found [here](CONTRIBUTING.md).
+Information about contributing to this project can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

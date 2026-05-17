@@ -38,3 +38,4 @@ no-space-in-links: true
 fenced-code-language: false
 first-line-h1: false
 no-empty-links: true
+table-column-style: false

@@ -17,27 +17,33 @@ Do not flag these as new issues. Do flag violations of the mitigations below.
 
 ## What to check
 
-**Subprocess / command injection (G204 area)**
+### Subprocess / command injection (G204 area)
+
 - The `az bicep build` invocation must only accept a validated `.bicep` file path — confirm the extension check (`file extension must be '.bicep'`) runs before the `exec.Command` call.
 - Arguments must be passed as discrete `exec.Command` args, never shell-interpolated into a single string.
 - No new subprocesses should be introduced without the same validation.
 
-**Path traversal / arbitrary file access (G304 area)**
+### Path traversal / arbitrary file access (G304 area)
+
 - User-supplied paths must be validated (existence via `os.Stat`, extension check) before being opened or created.
 - Temp files must use `os.TempDir()` with a non-guessable suffix (currently UUID-based — maintain this).
 - No `..` components should be allowed to escape the intended working directory.
 
-**JSON parsing**
+### JSON parsing
+
 - ARM templates are attacker-influenced if the Bicep source is untrusted. Custom `UnmarshalJSON` methods must not panic on unexpected types or missing fields.
 - Check that no `interface{}` (or `any`) values are later unsafely type-asserted without an ok check.
 
-**Sensitive output**
+### Sensitive output
+
 - The generated Markdown must not expose environment variables, credentials, or internal system paths that may appear in ARM template metadata.
 
-**Dependency risk**
+### Dependency risk
+
 - Flag any new `go.mod` dependency additions and assess whether a lighter-weight stdlib alternative exists.
 
-**gosec hygiene**
+### gosec hygiene
+
 - Any new `//nolint:gosec` or `#nosec` annotation must include the rule ID and a justification comment.
 - Run `task security` to confirm no new gosec findings beyond the suppressed G204/G304.
 
