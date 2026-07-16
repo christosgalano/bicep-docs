@@ -214,3 +214,83 @@ func TestUserDefinedDataType_UnmarshalJSON_Sealed(t *testing.T) {
 		})
 	}
 }
+
+func TestTemplate_UnmarshalJSON_ExportedVariables(t *testing.T) {
+	tests := []struct {
+		name              string
+		input             []byte
+		expectedVariables []Variable
+	}{
+		{
+			name: "exported_variables_with_description",
+			input: []byte(`{
+				"metadata": {
+					"__bicep_exported_variables!": [
+						{"name": "namePrefix", "description": "A shared prefix."},
+						{"name": "defaultTags"}
+					]
+				},
+				"variables": {
+					"namePrefix": "app",
+					"defaultTags": {"environment": "dev"},
+					"internalValue": "internal"
+				}
+			}`),
+			expectedVariables: []Variable{
+				{Name: "defaultTags", Value: map[string]any{"environment": "dev"}, Exportable: true},
+				{Name: "internalValue", Value: "internal"},
+				{Name: "namePrefix", Value: "app", Exportable: true, Description: "A shared prefix."},
+			},
+		},
+		{
+			name: "no_exported_variables",
+			input: []byte(`{
+				"variables": {
+					"internalValue": "internal"
+				}
+			}`),
+			expectedVariables: []Variable{
+				{Name: "internalValue", Value: "internal"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var template Template
+			if err := template.UnmarshalJSON(tt.input); err != nil {
+				t.Fatalf("UnmarshalJSON() error = %v", err)
+			}
+			if len(template.Variables) != len(tt.expectedVariables) {
+				t.Fatalf("Variables length: got %d, want %d", len(template.Variables), len(tt.expectedVariables))
+			}
+			for i, want := range tt.expectedVariables {
+				got := template.Variables[i]
+				if got.Name != want.Name {
+					t.Errorf("Variable[%d].Name: got %q, want %q", i, got.Name, want.Name)
+				}
+				if got.Exportable != want.Exportable {
+					t.Errorf("Variable[%d].Exportable: got %v, want %v", i, got.Exportable, want.Exportable)
+				}
+				if got.Description != want.Description {
+					t.Errorf("Variable[%d].Description: got %q, want %q", i, got.Description, want.Description)
+				}
+			}
+		})
+	}
+}
+
+func TestTemplate_UnmarshalJSON_ExportedVariablesError(t *testing.T) {
+	// A malformed "__bicep_exported_variables!" entry (non-array value) must surface an error.
+	input := []byte(`{
+		"metadata": {
+			"__bicep_exported_variables!": "not-an-array"
+		},
+		"variables": {
+			"namePrefix": "app"
+		}
+	}`)
+	var template Template
+	if err := template.UnmarshalJSON(input); err == nil {
+		t.Error("UnmarshalJSON() error = nil, want non-nil for malformed exported variables metadata")
+	}
+}

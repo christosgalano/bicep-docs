@@ -33,12 +33,12 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| kind | string | The kind of storage account. | "StorageV2" |
-| location | string | Location to deploy the storage account. | "[resourceGroup().location]" |
-| name | string | Name of the storage account. |  |
-| skuName | string | Name of the storage account's sku. | "Standard_LRS" |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| kind | Optional | string | The kind of storage account. | "StorageV2" |
+| location | Optional | string | Location to deploy the storage account. | "[resourceGroup().location]" |
+| name | Required | string | Name of the storage account. |  |
+| skuName | Optional | string | Name of the storage account's sku. | "Standard_LRS" |
 
 ## User Defined Data Types (UDDTs)
 

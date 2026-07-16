@@ -160,6 +160,29 @@ func (p *UserDefinedDataTypeProperty) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalExportedVariables extracts the exported variables from the template-level
+// "__bicep_exported_variables!" metadata item, which lists the variables annotated with @export().
+// It returns a map of variable names to their (possibly empty) descriptions.
+func unmarshalExportedVariables(data []byte) (map[string]string, error) {
+	var aux struct {
+		Metadata struct {
+			ExportedVariables []struct {
+				Name        string `json:"name"`
+				Description string `json:"description"`
+			} `json:"__bicep_exported_variables!"`
+		} `json:"metadata"`
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return nil, err
+	}
+
+	exported := make(map[string]string, len(aux.Metadata.ExportedVariables))
+	for _, variable := range aux.Metadata.ExportedVariables {
+		exported[variable.Name] = variable.Description
+	}
+	return exported, nil
+}
+
 // UnmarshalJSON unmarshals a JSON object into a Template.
 //
 // The parameters, data types, variables, outputs, and functions are unmarshalled
@@ -225,6 +248,25 @@ func (t *Template) UnmarshalJSON(data []byte) error { //nolint:gocyclo // Comple
 				Value: value,
 			}
 			t.Variables = append(t.Variables, variable)
+		}
+	}
+
+	// Mark exported variables (@export()) using the template-level
+	// "__bicep_exported_variables!" metadata item, which also carries their descriptions.
+	exportedVariables, err := unmarshalExportedVariables(data)
+	if err != nil {
+		return err
+	}
+	if len(exportedVariables) > 0 {
+		for i := range t.Variables {
+			description, ok := exportedVariables[t.Variables[i].Name]
+			if !ok {
+				continue
+			}
+			t.Variables[i].Exportable = true
+			if t.Variables[i].Description == "" {
+				t.Variables[i].Description = description
+			}
 		}
 	}
 

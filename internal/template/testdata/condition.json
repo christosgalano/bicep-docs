@@ -1,0 +1,103 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "5865760177694542732"
+    },
+    "name": "condition-test",
+    "description": "Template that exercises conditional resources and modules."
+  },
+  "parameters": {
+    "deploy": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Whether to deploy the resources."
+      }
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev",
+      "metadata": {
+        "description": "The environment name."
+      }
+    }
+  },
+  "resources": [
+    {
+      "condition": "[and(parameters('deploy'), equals(parameters('environment'), 'prod'))]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a conditional resource."
+      }
+    },
+    {
+      "copy": {
+        "name": "loop_resource",
+        "count": "[length(range(0, 2))]"
+      },
+      "condition": "[parameters('deploy')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[format('test{0}', range(0, 2)[copyIndex()])]",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a conditional loop resource."
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test2",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is an unconditional resource."
+      }
+    },
+    {
+      "condition": "[parameters('deploy')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "test",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "1922514959203083700"
+            }
+          },
+          "resources": []
+        }
+      },
+      "metadata": {
+        "description": "This is a conditional module."
+      }
+    }
+  ]
+}

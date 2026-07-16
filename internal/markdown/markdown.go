@@ -20,7 +20,10 @@ const (
 	H3                       // H3 represents a level 3 header (###)
 )
 
-const flagYes = "Yes" // Shared value for all boolean flag columns (Sealed, Exportable).
+const (
+	flagYes         = "Yes"       // Shared value for all boolean flag columns (Sealed, Exportable).
+	conditionHeader = "Condition" // Header of the conditional-deployment column in the modules/resources tables.
+)
 
 // String returns the string representation of the HeaderType.
 func (h HeaderType) String() string {
@@ -119,17 +122,36 @@ func generateTableRow(row []string) string {
 // generateModulesSection converts a template's modules into a markdown table.
 // If the template has no modules, it returns an empty string.
 // The table headers are "Symbolic Name", "Source", and "Description".
+// A "Condition" column is added after "Source" if at least one module is conditional.
 // If an error occurs, it is returned along with an empty string.
 func generateModulesSection(template *types.Template) (string, error) {
 	if len(template.Modules) == 0 {
 		return "", nil
 	}
-	headers := []string{"Symbolic Name", "Source", "Description"}
+
+	showCondition := false
+	for _, module := range template.Modules {
+		if module.Condition != "" {
+			showCondition = true
+			break
+		}
+	}
+
+	headers := []string{"Symbolic Name", "Source"}
+	if showCondition {
+		headers = append(headers, conditionHeader)
+	}
+	headers = append(headers, "Description")
+
 	rows := make([][]string, len(template.Modules))
 	for i, module := range template.Modules {
 		description := strings.ReplaceAll(module.Description, "\r\n", "\n")
 		description = strings.ReplaceAll(description, "\n", "<br>")
-		rows[i] = []string{module.SymbolicName, module.Source, description}
+		row := []string{module.SymbolicName, module.Source}
+		if showCondition {
+			row = append(row, formatBicepExpression(module.Condition))
+		}
+		rows[i] = append(row, description)
 	}
 	return NewMarkdownTable("Modules", H2, headers, rows).String(), nil
 }
@@ -137,20 +159,72 @@ func generateModulesSection(template *types.Template) (string, error) {
 // generateResourcesSection converts a template's resources into a markdown table.
 // If the template has no resources, it returns an empty string.
 // The table headers are "Symbolic Name", "Type", and "Description".
+// "Condition", "Retry On", and "Only If Not Exists" columns are added after "Type"
+// if at least one resource uses the corresponding construct.
 // If an error occurs, it is returned along with an empty string.
 func generateResourcesSection(template *types.Template) (string, error) {
 	if len(template.Resources) == 0 {
 		return "", nil
 	}
-	headers := []string{"Symbolic Name", "Type", "Description"}
+
+	showCondition, showRetryOn, showOnlyIfNotExists := false, false, false
+	for _, resource := range template.Resources {
+		showCondition = showCondition || resource.Condition != ""
+		showRetryOn = showRetryOn || resource.RetryOn != ""
+		showOnlyIfNotExists = showOnlyIfNotExists || resource.OnlyIfNotExists
+	}
+
+	headers := []string{"Symbolic Name", "Type"}
+	if showCondition {
+		headers = append(headers, conditionHeader)
+	}
+	if showRetryOn {
+		headers = append(headers, "Retry On")
+	}
+	if showOnlyIfNotExists {
+		headers = append(headers, "Only If Not Exists")
+	}
+	headers = append(headers, "Description")
+
 	rows := make([][]string, len(template.Resources))
-	for i, resource := range template.Resources {
-		typeLink := fmt.Sprintf("[%s](https://learn.microsoft.com/en-us/azure/templates/%s)", resource.Type, strings.ToLower(resource.Type))
-		description := strings.ReplaceAll(resource.Description, "\r\n", "\n")
-		description = strings.ReplaceAll(description, "\n", "<br>")
-		rows[i] = []string{resource.SymbolicName, typeLink, description}
+	for i := range template.Resources {
+		rows[i] = resourceRow(&template.Resources[i], showCondition, showRetryOn, showOnlyIfNotExists)
 	}
 	return NewMarkdownTable("Resources", H2, headers, rows).String(), nil
+}
+
+// resourceRow builds the markdown table row of a single resource.
+// The condition and decorator columns are included only when the corresponding show flag is set.
+func resourceRow(resource *types.Resource, showCondition, showRetryOn, showOnlyIfNotExists bool) []string {
+	typeLink := fmt.Sprintf("[%s](https://learn.microsoft.com/en-us/azure/templates/%s)", resource.Type, strings.ToLower(resource.Type))
+	description := strings.ReplaceAll(resource.Description, "\r\n", "\n")
+	description = strings.ReplaceAll(description, "\n", "<br>")
+
+	row := []string{resource.SymbolicName, typeLink}
+	if showCondition {
+		row = append(row, formatBicepExpression(resource.Condition))
+	}
+	if showRetryOn {
+		row = append(row, formatBicepExpression(resource.RetryOn))
+	}
+	if showOnlyIfNotExists {
+		onlyIfNotExistsVal := ""
+		if resource.OnlyIfNotExists {
+			onlyIfNotExistsVal = flagYes
+		}
+		row = append(row, onlyIfNotExistsVal)
+	}
+	return append(row, description)
+}
+
+// formatBicepExpression formats a Bicep expression for display inside a markdown table cell.
+// Non-empty expressions are rendered as inline code with pipe characters escaped,
+// so that expressions containing "||" do not break the table layout.
+func formatBicepExpression(expression string) string {
+	if expression == "" {
+		return ""
+	}
+	return fmt.Sprintf("`%s`", strings.ReplaceAll(expression, "|", "\\|"))
 }
 
 // generateParametersSection generates the parameters section of a template in markdown format.
@@ -489,14 +563,28 @@ func generateUserDefinedFunctionsSection(template *types.Template, showAllDecora
 // generateVariablesSection generates the variables section of the markdown document based on the provided template.
 // If the template has no variables, it returns an empty string.
 // Otherwise, it creates a markdown table with the variable names and descriptions.
-func generateVariablesSection(template *types.Template) (string, error) {
+// An "Exportable" column is added if the showAllDecorators flag is enabled.
+func generateVariablesSection(template *types.Template, showAllDecorators bool) (string, error) { //nolint:unparam // Ignore the error return value; it is there for consistency.
 	if len(template.Variables) == 0 {
 		return "", nil
 	}
+
 	headers := []string{"Name", "Description"}
+	if showAllDecorators {
+		headers = []string{"Name", "Description", "Exportable"}
+	}
+
 	rows := make([][]string, len(template.Variables))
 	for i, variable := range template.Variables {
-		rows[i] = []string{variable.Name, variable.Description}
+		row := []string{variable.Name, variable.Description}
+		if showAllDecorators {
+			exportableVal := ""
+			if variable.Exportable {
+				exportableVal = flagYes
+			}
+			row = append(row, exportableVal)
+		}
+		rows[i] = row
 	}
 	return NewMarkdownTable("Variables", H2, headers, rows).String(), nil
 }

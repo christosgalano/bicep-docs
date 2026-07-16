@@ -31,9 +31,11 @@ bicep-docs -i bicep/main.bicep -o bicep/README_decorators.md --show-all-decorato
 
 - **Parameter Constraints**: `@minLength`, `@maxLength`, `@minValue`, `@maxValue`, `@allowed`
 - **Secure Parameters**: `@secure()` decorator
-- **Exportable Types**: `@export()` decorator on custom types and functions
+- **Exportable Types**: `@export()` decorator on custom types, functions, and variables
 - **Output Constraints**: Decorators applied to outputs
 - **Custom Types**: User-defined data types with constraints and exportable status
+- **Conditional Deployments**: resources declared with `= if (condition)` (shown in the "Condition" column)
+- **Resource Decorators**: `@retryOn()` and `@onlyIfNotExists()` (shown in the "Retry On" and "Only If Not Exists" columns)
 
 ## Comparison
 

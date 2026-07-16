@@ -20,11 +20,15 @@ var (
 	moduleRegex                    = regexp.MustCompile(`^module\s+(\S+)\s+'(\S+)'`)
 	resourceRegex                  = regexp.MustCompile(`^resource\s+(\S+)\s+'(\S+)'`)
 	typeRegex                      = regexp.MustCompile(`^type\s+(\S+)\s+`)
+	funcRegex                      = regexp.MustCompile(`^func\s+(\S+)\s*\(`)
 	outputRegex                    = regexp.MustCompile(`^output\s+(\S+)\s+`)
 	variableRegex                  = regexp.MustCompile(`^var\s+(\S+)\s+`)
 	parameterRegex                 = regexp.MustCompile(`^param\s+(\S+)\s+`)
 	inlineDescriptionRegex         = regexp.MustCompile(`^@(description|sys.description)\(('''|')(.*?)('''|')\)`)
 	multilineDescriptionStartRegex = regexp.MustCompile(`^@(description|sys.description)\('''(.*)`)
+	conditionStartRegex            = regexp.MustCompile(`[=:]\s*if\s*\(`)
+	retryOnStartRegex              = regexp.MustCompile(`^@(sys\.)?retryOn\(`)
+	onlyIfNotExistsRegex           = regexp.MustCompile(`^@(sys\.)?onlyIfNotExists\(\s*\)`)
 )
 
 // ParseTemplates parses the Bicep and ARM templates and returns a populated types.Template struct.
@@ -60,9 +64,11 @@ func ParseTemplates(bicepFile, armFile string) (*types.Template, error) {
 				varMap[v.Name] = v.Description
 			}
 
-			// Apply descriptions to matching ARM template variables
+			// Apply descriptions to matching ARM template variables.
+			// Empty Bicep descriptions are skipped so that descriptions sourced
+			// from the ARM template (e.g. exported variables) are preserved.
 			for i := range template.Variables {
-				if desc, ok := varMap[template.Variables[i].Name]; ok {
+				if desc, ok := varMap[template.Variables[i].Name]; ok && desc != "" {
 					template.Variables[i].Description = desc
 				}
 			}
@@ -107,7 +113,8 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, []t
 	variables := []types.Variable{}
 
 	var description *string
-	var line, currentDescription string
+	var line string
+	var pending pendingDeclaration
 	for scanner.Scan() {
 		line = scanner.Text()
 
@@ -128,40 +135,24 @@ func parseBicepTemplate(bicepFile string) ([]types.Module, []types.Resource, []t
 		// Parse description
 		description = parseDescription(line, scanner)
 		if description != nil {
-			currentDescription = *description
+			pending.description = *description
+			continue
+		}
+
+		// Parse resource decorators (@retryOn, @onlyIfNotExists)
+		if pending.applyDecorator(line) {
 			continue
 		}
 
 		// Ignore the description of parameters, outputs, types, and variables
 		if ignoreDescription(line) {
-			currentDescription = ""
+			pending = pendingDeclaration{}
 			continue
 		}
 
-		// Parse module
-		module := parseModule(line)
-		if module != nil {
-			module.Description = currentDescription
-			modules = append(modules, *module)
-			currentDescription = ""
-			continue
-		}
-
-		// Parse resource
-		resource := parseResource(line)
-		if resource != nil {
-			resource.Description = currentDescription
-			resources = append(resources, *resource)
-			currentDescription = ""
-			continue
-		}
-
-		// Parse variable
-		variable := parseVariable(line)
-		if variable != nil {
-			variable.Description = currentDescription
-			variables = append(variables, *variable)
-			currentDescription = ""
+		// Parse module, resource, and variable declarations
+		if parseDeclarationLine(line, pending, &modules, &resources, &variables) {
+			pending = pendingDeclaration{}
 			continue
 		}
 	}
@@ -222,6 +213,52 @@ func parseDescription(line string, scanner *bufio.Scanner) *string {
 	return nil
 }
 
+// pendingDeclaration accumulates the description and decorators seen above a declaration line.
+// The state is applied to the next module, resource, or variable declaration and then reset.
+type pendingDeclaration struct {
+	description     string
+	retryOn         string
+	onlyIfNotExists bool
+}
+
+// applyDecorator updates the pending state if the line is a supported resource decorator.
+// It reports whether the line was consumed as a decorator.
+func (p *pendingDeclaration) applyDecorator(line string) bool {
+	if retryOn := parseRetryOn(line); retryOn != "" {
+		p.retryOn = retryOn
+		return true
+	}
+	if onlyIfNotExistsRegex.MatchString(line) {
+		p.onlyIfNotExists = true
+		return true
+	}
+	return false
+}
+
+// parseDeclarationLine parses a module, resource, or variable declaration line,
+// applies the pending description and decorators, and appends the result to the corresponding slice.
+// It reports whether the line matched a declaration.
+func parseDeclarationLine(line string, pending pendingDeclaration, modules *[]types.Module, resources *[]types.Resource, variables *[]types.Variable) bool {
+	if module := parseModule(line); module != nil {
+		module.Description = pending.description
+		*modules = append(*modules, *module)
+		return true
+	}
+	if resource := parseResource(line); resource != nil {
+		resource.Description = pending.description
+		resource.RetryOn = pending.retryOn
+		resource.OnlyIfNotExists = pending.onlyIfNotExists
+		*resources = append(*resources, *resource)
+		return true
+	}
+	if variable := parseVariable(line); variable != nil {
+		variable.Description = pending.description
+		*variables = append(*variables, *variable)
+		return true
+	}
+	return false
+}
+
 // parseModule parses a line of text and returns a pointer to a types.Module struct.
 // If the line does not match the regex pattern, it returns nil.
 func parseModule(line string) *types.Module {
@@ -231,6 +268,7 @@ func parseModule(line string) *types.Module {
 		return &types.Module{
 			SymbolicName: matches[1],
 			Source:       moduleSource,
+			Condition:    parseCondition(line),
 		}
 	}
 	return nil
@@ -246,9 +284,66 @@ func parseResource(line string) *types.Resource {
 		return &types.Resource{
 			SymbolicName: matches[1],
 			Type:         resourceType,
+			Condition:    parseCondition(line),
 		}
 	}
 	return nil
+}
+
+// parseCondition extracts the condition expression of a conditional deployment
+// from a declaration line. It supports both the plain form (resource ... = if (condition) {...})
+// and the loop form (resource ... = [for item in items: if (condition) {...]).
+// It returns the expression inside the balanced parentheses following "= if" or ": if".
+// If the line has no condition, or the condition spans multiple lines, it returns an empty string.
+func parseCondition(line string) string {
+	loc := conditionStartRegex.FindStringIndex(line)
+	if loc == nil {
+		return ""
+	}
+	return extractBalancedParens(line, loc[1])
+}
+
+// parseRetryOn extracts the arguments of the @retryOn decorator from a line.
+// It returns the arguments inside the balanced parentheses (e.g. "['ServerError'], 3").
+// If the line is not a @retryOn decorator, or the arguments span multiple lines,
+// it returns an empty string.
+func parseRetryOn(line string) string {
+	loc := retryOnStartRegex.FindStringIndex(line)
+	if loc == nil {
+		return ""
+	}
+	return extractBalancedParens(line, loc[1])
+}
+
+// extractBalancedParens returns the trimmed substring of line from start (an index
+// just after an opening parenthesis) up to the matching closing parenthesis,
+// ignoring parentheses that appear inside single-quoted strings (escaped quotes \' are handled).
+// Quotes nested inside string interpolation (e.g. '${func('x')}') are not tracked and may
+// cause the expression to be truncated. If no matching closing parenthesis is found on the
+// line, it returns an empty string.
+func extractBalancedParens(line string, start int) string {
+	depth := 1
+	inString := false
+	for i := start; i < len(line); i++ {
+		switch line[i] {
+		case '\'':
+			if i == 0 || line[i-1] != '\\' {
+				inString = !inString
+			}
+		case '(':
+			if !inString {
+				depth++
+			}
+		case ')':
+			if !inString {
+				depth--
+				if depth == 0 {
+					return strings.TrimSpace(line[start:i])
+				}
+			}
+		}
+	}
+	return ""
 }
 
 // parseVariable parses a line of text and returns a pointer to a types.Variable struct.
@@ -294,10 +389,13 @@ func skipComment(line string, scanner *bufio.Scanner) (bool, error) {
 }
 
 // ignoreDescription checks if a given line should be ignored based on certain patterns.
-// It returns true if the line matches any of the type, output, variable or parameter patterns; otherwise, it returns false.
+// It returns true if the line matches any of the type, function, output, or parameter patterns;
+// otherwise, it returns false. This prevents descriptions (and decorators) of declarations
+// that are parsed from the ARM template from leaking onto the next Bicep-parsed declaration.
 func ignoreDescription(line string) bool {
 	matchType := typeRegex.FindStringSubmatch(line)
+	matchFunc := funcRegex.FindStringSubmatch(line)
 	matchOutput := outputRegex.FindStringSubmatch(line)
 	matchParameter := parameterRegex.FindStringSubmatch(line)
-	return matchType != nil || matchOutput != nil || matchParameter != nil
+	return matchType != nil || matchFunc != nil || matchOutput != nil || matchParameter != nil
 }

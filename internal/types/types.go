@@ -33,10 +33,11 @@ type Items struct {
 }
 
 // Module is a struct that contains the information about a module.
-// A module has a symbolic name, a source, and an optional description.
+// A module has a symbolic name, a source, an optional condition, and an optional description.
 //
 // The symbolic name is the name of the module that is used to reference the module.
 // The source is either the path to the module file or the URL of the remote module.
+// The condition is the Bicep expression of a conditional deployment (module ... = if (condition) {...}).
 // The description is an optional description of the module.
 //
 // Example:
@@ -46,19 +47,27 @@ type Items struct {
 type Module struct {
 	SymbolicName string
 	Source       string
+	Condition    string
 	Description  string
 }
 
 // Resource is a struct that contains the information about a resource.
-// A resource has a symbolic name, a type, and an optional description.
+// A resource has a symbolic name, a type, an optional condition,
+// optional decorators (@retryOn, @onlyIfNotExists), and an optional description.
 //
 // The symbolic name is the name of the resource that is used to reference the resource.
 // The type is the type of the resource (e.g. "Microsoft.Network/virtualNetworks").
+// The condition is the Bicep expression of a conditional deployment (resource ... = if (condition) {...}).
+// RetryOn holds the arguments of the @retryOn decorator (e.g. "['ServerError'], 3").
+// OnlyIfNotExists indicates whether the resource is annotated with @onlyIfNotExists().
 // The description is an optional description of the resource.
 type Resource struct {
-	SymbolicName string
-	Type         string
-	Description  string
+	SymbolicName    string
+	Type            string
+	Condition       string
+	RetryOn         string
+	OnlyIfNotExists bool
+	Description     string
 }
 
 // ParameterStatus is an enum that represents the status of a parameter.
@@ -186,14 +195,17 @@ func (u *UserDefinedFunction) IsExportable() bool {
 }
 
 // Variable is a struct that contains the information about a variable.
-// A variable has a name and a value.
+// A variable has a name, a value, an export flag, and an optional description.
 //
 // The name is the name of the variable.
 // The value is the value of the variable.
+// The export flag is derived from the template-level metadata item "__bicep_exported_variables!",
+// which lists the variables annotated with @export().
 // The description is an optional description of the variable.
 type Variable struct {
 	Name        string `json:"-"`
 	Value       any    `json:"-"`
+	Exportable  bool   `json:"-"`
 	Description string `json:"-"`
 }
 

@@ -40,11 +40,11 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Resources
 
-| Symbolic Name | Type | Description |
-| --- | --- | --- |
-| applicationInsights | [Microsoft.Insights/components](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components) |  |
-| storageAccount | [Microsoft.Storage/storageAccounts](https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts) |  |
-| virtualNetwork | [Microsoft.Network/virtualNetworks](https://learn.microsoft.com/en-us/azure/templates/microsoft.network/virtualnetworks) |  |
+| Symbolic Name | Type | Condition | Retry On | Only If Not Exists | Description |
+| --- | --- | --- | --- | --- | --- |
+| applicationInsights | [Microsoft.Insights/components](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components) | `enableMonitoring` |  |  |  |
+| storageAccount | [Microsoft.Storage/storageAccounts](https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts) |  | `['ServerError', 'Conflict'], 3` | Yes |  |
+| virtualNetwork | [Microsoft.Network/virtualNetworks](https://learn.microsoft.com/en-us/azure/templates/microsoft.network/virtualnetworks) |  |  |  |  |
 
 ## Parameters
 
@@ -102,8 +102,9 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 | Name | Description |
 | --- | --- |
-| fullResourceName | Non-exportable function to get default tags |
+| fullResourceName |  |
 | mergedTags |  |
+| namingSeparator | Exportable naming separator shared with consuming templates |
 | totalStorageNeeded |  |
 
 ## Outputs
