@@ -31,10 +31,10 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| identityName | string | Name of the identity. |  |
-| location | string | Location of the identity. | "[resourceGroup().location]" |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| identityName | Required | string | Name of the identity. |  |
+| location | Optional | string | Location of the identity. | "[resourceGroup().location]" |
 
 ## Outputs
 

@@ -206,6 +206,28 @@ The tool follows these conventions when documenting resources, modules, variable
 
 This approach keeps the documentation clean and focused on the logical structure rather than implementation details.
 
+### Conditional deployments and resource decorators
+
+The tool documents deployment-behavior constructs on resources and modules:
+
+**Conditions:**
+- Resources and modules declared with `= if (condition)` are documented with their condition expression
+- A "Condition" column is added to the resources/modules tables only when at least one entry is conditional
+- Example:
+  ```bicep
+  resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = if (deployStorage) {...}
+  module network './network/main.bicep' = if (environment == 'prod') {...}
+  ```
+
+**Resource decorators:**
+- `@retryOn(errorCodes, retryCount)` (Bicep >= 0.45.6): the decorator arguments are shown in a "Retry On" column
+- `@onlyIfNotExists()` (Bicep >= 0.38.3): flagged in an "Only If Not Exists" column
+- These columns are added to the resources table only when at least one resource uses the corresponding decorator
+
+**Exported variables:**
+- Variables annotated with `@export()` are marked in an "Exportable" column of the variables table when the `--show-all-decorators` flag is used
+- Descriptions of exported variables are preserved even when the variable's description is only present in the compiled ARM template
+
 ### Folder structure
 
 This tool is extremely useful if you are following this structure for your Bicep projects:

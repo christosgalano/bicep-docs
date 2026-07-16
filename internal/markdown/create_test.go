@@ -717,6 +717,98 @@ func TestCreateFile(t *testing.T) {
 			checkFile: "./testdata/export_all.md",
 		},
 		{
+			name: "exportable variables with show-all-decorators",
+			args: args{
+				filename: "export_variables.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Variables: []types.Variable{
+						{
+							Name:        "namePrefix",
+							Exportable:  true,
+							Description: "A shared prefix used across resources.",
+						},
+						{
+							Name:        "internalValue",
+							Description: "An internal variable (not exported).",
+						},
+					},
+				},
+				showAllDecorators: true,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/export_variables.md",
+		},
+		{
+			name: "conditional resources and modules",
+			args: args{
+				filename: "condition.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Modules: []types.Module{
+						{
+							SymbolicName: "conditional_module",
+							Source:       "./modules/test_module/main.bicep",
+							Condition:    "deploy",
+							Description:  "This is a conditional module.",
+						},
+						{
+							SymbolicName: "plain_module",
+							Source:       "./modules/other/main.bicep",
+							Description:  "This is a plain module.",
+						},
+					},
+					Resources: []types.Resource{
+						{
+							SymbolicName: "conditional_resource",
+							Type:         "Microsoft.Storage/storageAccounts",
+							Condition:    "deploy || force",
+							Description:  "This is a conditional resource.",
+						},
+						{
+							SymbolicName: "plain_resource",
+							Type:         "Microsoft.Web/serverfarms",
+							Description:  "This is a plain resource.",
+						},
+					},
+				},
+				showAllDecorators: false,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/condition.md",
+		},
+		{
+			name: "resource decorators",
+			args: args{
+				filename: "decorators.md",
+				template: &types.Template{
+					FileName: "test.bicep",
+					Resources: []types.Resource{
+						{
+							SymbolicName: "retry_resource",
+							Type:         "Microsoft.Storage/storageAccounts",
+							RetryOn:      "['ServerError', 'Conflict'], 3",
+							Description:  "This is a resource with retry behavior.",
+						},
+						{
+							SymbolicName:    "idempotent_resource",
+							Type:            "Microsoft.Storage/storageAccounts",
+							OnlyIfNotExists: true,
+							Description:     "This is a resource that is only created if it does not exist.",
+						},
+						{
+							SymbolicName: "plain_resource",
+							Type:         "Microsoft.Web/serverfarms",
+							Description:  "This is a plain resource.",
+						},
+					},
+				},
+				showAllDecorators: false,
+			},
+			wantErr:   false,
+			checkFile: "./testdata/decorators.md",
+		},
+		{
 			name: "given path is a directory",
 			args: args{
 				filename:          "testdata",

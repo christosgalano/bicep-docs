@@ -1,0 +1,67 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "14658909959712179409"
+    },
+    "name": "decorators-test",
+    "description": "Template that exercises resource decorators."
+  },
+  "resources": {
+    "retry_resource": {
+      "@options": {
+        "retryOn": [
+          [
+            "ServerError",
+            "Conflict"
+          ],
+          3
+        ]
+      },
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a resource with retry behavior."
+      }
+    },
+    "idempotent_resource": {
+      "@options": {
+        "onlyIfNotExists": []
+      },
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test2",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a resource that is only created if it does not exist."
+      }
+    },
+    "plain_resource": {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "test3",
+      "location": "westus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "metadata": {
+        "description": "This is a plain resource."
+      }
+    }
+  }
+}

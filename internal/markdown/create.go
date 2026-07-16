@@ -109,10 +109,8 @@ func buildMarkdownString(builder *strings.Builder, template *types.Template, sec
 		types.ParametersSection:           generateParametersSection,
 		types.UserDefinedDataTypesSection: generateUserDefinedDataTypesSection,
 		types.UserDefinedFunctionsSection: generateUserDefinedFunctionsSection,
-		types.VariablesSection: func(t *types.Template, _ bool) (string, error) {
-			return generateVariablesSection(t)
-		},
-		types.OutputsSection: generateOutputsSection,
+		types.VariablesSection:            generateVariablesSection,
+		types.OutputsSection:              generateOutputsSection,
 	}
 
 	// Iterate over the sections slice and call the corresponding function for each section

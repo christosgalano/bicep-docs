@@ -37,10 +37,10 @@ module reference_name 'path_to_module | container_registry_reference' = {
 
 ## Parameters
 
-| Name | Type | Description | Default |
-| --- | --- | --- | --- |
-| location | string | Location to deploy the resources. | "westeurope" |
-| rgName | string | Name of the resource group to deploy the resources. | "rgtest123" |
+| Name | Status | Type | Description | Default |
+| --- | --- | --- | --- | --- |
+| location | Optional | string | Location to deploy the resources. | "westeurope" |
+| rgName | Optional | string | Name of the resource group to deploy the resources. | "rgtest123" |
 
 ## Outputs
 

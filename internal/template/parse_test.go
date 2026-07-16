@@ -258,6 +258,114 @@ func TestParseTemplates(t *testing.T) {
 		},
 		Metadata: &types.Metadata{},
 	}
+	conditionTemplate := &types.Template{
+		FileName: "testdata/condition.bicep",
+		Modules: []types.Module{
+			{
+				SymbolicName: "conditional_module",
+				Source:       "./modules/test_module/main.bicep",
+				Condition:    "deploy",
+				Description:  "This is a conditional module.",
+			},
+		},
+		Resources: []types.Resource{
+			{
+				SymbolicName: "conditional_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Condition:    "deploy && environment == 'prod'",
+				Description:  "This is a conditional resource.",
+			},
+			{
+				SymbolicName: "loop_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Condition:    "deploy",
+				Description:  "This is a conditional loop resource.",
+			},
+			{
+				SymbolicName: "plain_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is an unconditional resource.",
+			},
+		},
+		Parameters: []types.Parameter{
+			{
+				Name:         "deploy",
+				Type:         "bool",
+				DefaultValue: true,
+				Metadata: &types.Metadata{
+					Description: strPtr("Whether to deploy the resources."),
+				},
+			},
+			{
+				Name:         "environment",
+				Type:         "string",
+				DefaultValue: "dev",
+				Metadata: &types.Metadata{
+					Description: strPtr("The environment name."),
+				},
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        strPtr("condition-test"),
+			Description: strPtr("Template that exercises conditional resources and modules."),
+		},
+	}
+
+	exportVariablesTemplate := &types.Template{
+		FileName: "testdata/export_variables.bicep",
+		Variables: []types.Variable{
+			{
+				Name:       "defaultTags",
+				Exportable: true,
+			},
+			{
+				Name:        "internalValue",
+				Description: "An internal variable (not exported).",
+			},
+			{
+				Name:        "namePrefix",
+				Exportable:  true,
+				Description: "A shared prefix used across resources.",
+			},
+		},
+		Outputs: []types.Output{
+			{
+				Name: "internal",
+				Type: "string",
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        strPtr("export-variables-test"),
+			Description: strPtr("Template that exercises exported variables."),
+		},
+	}
+
+	decoratorsTemplate := &types.Template{
+		FileName: "testdata/decorators.bicep",
+		Resources: []types.Resource{
+			{
+				SymbolicName:    "idempotent_resource",
+				Type:            "Microsoft.Storage/storageAccounts",
+				OnlyIfNotExists: true,
+				Description:     "This is a resource that is only created if it does not exist.",
+			},
+			{
+				SymbolicName: "plain_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Description:  "This is a plain resource.",
+			},
+			{
+				SymbolicName: "retry_resource",
+				Type:         "Microsoft.Storage/storageAccounts",
+				RetryOn:      "['ServerError', 'Conflict'], 3",
+				Description:  "This is a resource with retry behavior.",
+			},
+		},
+		Metadata: &types.Metadata{
+			Name:        strPtr("decorators-test"),
+			Description: strPtr("Template that exercises resource decorators."),
+		},
+	}
 
 	type args struct {
 		bicepFile string
@@ -312,6 +420,33 @@ func TestParseTemplates(t *testing.T) {
 				armFile:   "testdata/any.json",
 			},
 			want:    anyTemplate,
+			wantErr: false,
+		},
+		{
+			name: "condition_template",
+			args: args{
+				bicepFile: "testdata/condition.bicep",
+				armFile:   "testdata/condition.json",
+			},
+			want:    conditionTemplate,
+			wantErr: false,
+		},
+		{
+			name: "export_variables_template",
+			args: args{
+				bicepFile: "testdata/export_variables.bicep",
+				armFile:   "testdata/export_variables.json",
+			},
+			want:    exportVariablesTemplate,
+			wantErr: false,
+		},
+		{
+			name: "decorators_template",
+			args: args{
+				bicepFile: "testdata/decorators.bicep",
+				armFile:   "testdata/decorators.json",
+			},
+			want:    decoratorsTemplate,
 			wantErr: false,
 		},
 		{
@@ -396,6 +531,24 @@ func Test_parseBicepTemplate(t *testing.T) {
 				{
 					Name:        "test_variable",
 					Description: "This is a test variable.",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "func_description_does_not_leak_to_variable",
+			args: args{
+				bicepFile: "testdata/func_description.bicep",
+			},
+			wantModules:   []types.Module{},
+			wantResources: []types.Resource{},
+			wantVariables: []types.Variable{
+				{
+					Name: "undescribedVariable",
+				},
+				{
+					Name:        "describedVariable",
+					Description: "This is a described variable.",
 				},
 			},
 			wantErr: false,
@@ -518,6 +671,18 @@ func Test_parseModule(t *testing.T) {
 			},
 		},
 		{
+			name: "conditional_module",
+			args: args{
+				line:        "module test './modules/test_module/main.bicep' = if (deploy) {",
+				description: "This is a conditional module",
+			},
+			want: &types.Module{
+				SymbolicName: "test",
+				Source:       "./modules/test_module/main.bicep",
+				Condition:    "deploy",
+			},
+		},
+		{
 			name: "invalid_module",
 			args: args{
 				line:        "invalid line",
@@ -557,6 +722,17 @@ func Test_parseResource(t *testing.T) {
 			},
 		},
 		{
+			name: "conditional_storage_account",
+			args: args{
+				line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (deploy && environment == 'prod') {",
+			},
+			want: &types.Resource{
+				SymbolicName: "test",
+				Type:         "Microsoft.Storage/storageAccounts",
+				Condition:    "deploy && environment == 'prod'",
+			},
+		},
+		{
 			name: "invalid_resource",
 			args: args{
 				line:        "invalid line",
@@ -572,6 +748,193 @@ func Test_parseResource(t *testing.T) {
 				t.Errorf("parseResource() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_parseCondition(t *testing.T) {
+	tests := []struct {
+		name string
+		line string
+		want string
+	}{
+		{
+			name: "no_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = {",
+			want: "",
+		},
+		{
+			name: "simple_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (deploy) {",
+			want: "deploy",
+		},
+		{
+			name: "nested_parentheses",
+			line: "module test './main.bicep' = if (deploy && (env == 'prod' || env == 'staging')) {",
+			want: "deploy && (env == 'prod' || env == 'staging')",
+		},
+		{
+			name: "function_call_in_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (contains(names, 'test')) {",
+			want: "contains(names, 'test')",
+		},
+		{
+			name: "parenthesis_inside_string",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (name == 'value (special)') {",
+			want: "name == 'value (special)'",
+		},
+		{
+			name: "unbalanced_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (deploy &&",
+			want: "",
+		},
+		{
+			name: "loop_with_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = [for i in range(0, 2): if (deploy) {",
+			want: "deploy",
+		},
+		{
+			name: "loop_without_condition",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = [for i in range(0, 2): {",
+			want: "",
+		},
+		{
+			name: "escaped_quote_inside_string",
+			line: `resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = if (name == 'it\'s (a) test') {`,
+			want: `name == 'it\'s (a) test'`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := parseCondition(tt.line); got != tt.want {
+				t.Errorf("parseCondition() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_parseRetryOn(t *testing.T) {
+	tests := []struct {
+		name string
+		line string
+		want string
+	}{
+		{
+			name: "no_retry_on",
+			line: "resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = {",
+			want: "",
+		},
+		{
+			name: "retry_on_with_codes_and_count",
+			line: "@retryOn(['ServerError', 'Conflict'], 3)",
+			want: "['ServerError', 'Conflict'], 3",
+		},
+		{
+			name: "retry_on_with_sys_prefix",
+			line: "@sys.retryOn(['ServerError'], 2)",
+			want: "['ServerError'], 2",
+		},
+		{
+			name: "retry_on_codes_only",
+			line: "@retryOn(['ResourceNotFound'])",
+			want: "['ResourceNotFound']",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := parseRetryOn(tt.line); got != tt.want {
+				t.Errorf("parseRetryOn() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_pendingDeclaration_applyDecorator(t *testing.T) {
+	tests := []struct {
+		name                    string
+		lines                   []string
+		expectedConsumed        bool
+		expectedRetryOn         string
+		expectedOnlyIfNotExists bool
+	}{
+		{
+			name:                    "retry_on_only",
+			lines:                   []string{"@retryOn(['ServerError'], 3)"},
+			expectedConsumed:        true,
+			expectedRetryOn:         "['ServerError'], 3",
+			expectedOnlyIfNotExists: false,
+		},
+		{
+			name:                    "only_if_not_exists_only",
+			lines:                   []string{"@onlyIfNotExists()"},
+			expectedConsumed:        true,
+			expectedRetryOn:         "",
+			expectedOnlyIfNotExists: true,
+		},
+		{
+			name:                    "both_decorators",
+			lines:                   []string{"@retryOn(['Conflict'], 2)", "@onlyIfNotExists()"},
+			expectedConsumed:        true,
+			expectedRetryOn:         "['Conflict'], 2",
+			expectedOnlyIfNotExists: true,
+		},
+		{
+			name:                    "not_a_decorator",
+			lines:                   []string{"@minLength(3)"},
+			expectedConsumed:        false,
+			expectedRetryOn:         "",
+			expectedOnlyIfNotExists: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var pending pendingDeclaration
+			consumed := false
+			for _, line := range tt.lines {
+				consumed = pending.applyDecorator(line)
+			}
+			if consumed != tt.expectedConsumed {
+				t.Errorf("applyDecorator() = %v, want %v", consumed, tt.expectedConsumed)
+			}
+			if pending.retryOn != tt.expectedRetryOn {
+				t.Errorf("retryOn = %q, want %q", pending.retryOn, tt.expectedRetryOn)
+			}
+			if pending.onlyIfNotExists != tt.expectedOnlyIfNotExists {
+				t.Errorf("onlyIfNotExists = %v, want %v", pending.onlyIfNotExists, tt.expectedOnlyIfNotExists)
+			}
+		})
+	}
+}
+
+func Test_parseDeclarationLine_decoratorAttribution(t *testing.T) {
+	// Decorators pending before a module or variable declaration must not leak into it,
+	// and must only be applied to resource declarations.
+	pending := pendingDeclaration{description: "desc", retryOn: "['ServerError'], 3", onlyIfNotExists: true}
+
+	var modules []types.Module
+	var resources []types.Resource
+	var variables []types.Variable
+
+	if !parseDeclarationLine("module test './main.bicep'", pending, &modules, &resources, &variables) {
+		t.Fatal("expected module declaration to match")
+	}
+	if !parseDeclarationLine("resource test 'Microsoft.Storage/storageAccounts@2023-01-01' = {", pending, &modules, &resources, &variables) {
+		t.Fatal("expected resource declaration to match")
+	}
+	if !parseDeclarationLine("var test = 1", pending, &modules, &resources, &variables) {
+		t.Fatal("expected variable declaration to match")
+	}
+
+	if len(modules) != 1 || len(resources) != 1 || len(variables) != 1 {
+		t.Fatalf("declarations: got %d modules, %d resources, %d variables; want 1 of each", len(modules), len(resources), len(variables))
+	}
+	if resources[0].RetryOn != "['ServerError'], 3" || !resources[0].OnlyIfNotExists {
+		t.Errorf("resource decorators not applied: %+v", resources[0])
+	}
+	if modules[0].Description != "desc" || variables[0].Description != "desc" {
+		t.Errorf("description not applied: module %q, variable %q", modules[0].Description, variables[0].Description)
 	}
 }
 
@@ -642,6 +1005,9 @@ func compareModules(t *testing.T, got, want []types.Module) {
 		if got[i].Source != want[i].Source {
 			t.Errorf("Module[%d].Source = %v, want %v", i, got[i].Source, want[i].Source)
 		}
+		if got[i].Condition != want[i].Condition {
+			t.Errorf("Module[%d].Condition = %v, want %v", i, got[i].Condition, want[i].Condition)
+		}
 		if got[i].Description != want[i].Description {
 			t.Errorf("Module[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)
 		}
@@ -660,6 +1026,15 @@ func compareResources(t *testing.T, got, want []types.Resource) {
 		}
 		if got[i].Type != want[i].Type {
 			t.Errorf("Resource[%d].Type = %v, want %v", i, got[i].Type, want[i].Type)
+		}
+		if got[i].Condition != want[i].Condition {
+			t.Errorf("Resource[%d].Condition = %v, want %v", i, got[i].Condition, want[i].Condition)
+		}
+		if got[i].RetryOn != want[i].RetryOn {
+			t.Errorf("Resource[%d].RetryOn = %v, want %v", i, got[i].RetryOn, want[i].RetryOn)
+		}
+		if got[i].OnlyIfNotExists != want[i].OnlyIfNotExists {
+			t.Errorf("Resource[%d].OnlyIfNotExists = %v, want %v", i, got[i].OnlyIfNotExists, want[i].OnlyIfNotExists)
 		}
 		if got[i].Description != want[i].Description {
 			t.Errorf("Resource[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)
@@ -698,6 +1073,9 @@ func compareVariables(t *testing.T, got, want []types.Variable) {
 	for i := range got {
 		if got[i].Name != want[i].Name {
 			t.Errorf("Variable[%d].Name = %v, want %v", i, got[i].Name, want[i].Name)
+		}
+		if got[i].Exportable != want[i].Exportable {
+			t.Errorf("Variable[%d].Exportable = %v, want %v", i, got[i].Exportable, want[i].Exportable)
 		}
 		if got[i].Description != want[i].Description {
 			t.Errorf("Variable[%d].Description = %v, want %v", i, got[i].Description, want[i].Description)

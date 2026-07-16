@@ -133,7 +133,12 @@ func getDefaultTags(env string) object => {
 
 var fullResourceName = generateResourceName(resourcePrefix, 'vm', environment)
 var totalStorageNeeded = calculateStorageSize(instanceCount, diskSizeGB)
+
 var mergedTags = union(getDefaultTags(environment), tags)
+
+@export()
+@description('Exportable naming separator shared with consuming templates')
+var namingSeparator = '-'
 
 // ============================================================================
 // RESOURCES
@@ -162,6 +167,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-01-01' = {
   }
 }
 
+// Retried on transient errors, and only created if it does not already exist
+@retryOn(['ServerError', 'Conflict'], 3)
+@onlyIfNotExists()
 resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   name: storageSettings.name
   location: location

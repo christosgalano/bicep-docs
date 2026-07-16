@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "462742379378059744"
+    },
+    "__bicep_exported_variables!": [
+      {
+        "name": "defaultTags"
+      },
+      {
+        "name": "namePrefix",
+        "description": "A shared prefix used across resources."
+      }
+    ],
+    "name": "export-variables-test",
+    "description": "Template that exercises exported variables."
+  },
+  "variables": {
+    "namePrefix": "app",
+    "defaultTags": {
+      "environment": "dev"
+    },
+    "internalValue": "[format('{0}-internal', variables('namePrefix'))]"
+  },
+  "resources": [],
+  "outputs": {
+    "internal": {
+      "type": "string",
+      "value": "[variables('internalValue')]"
+    }
+  }
+}
